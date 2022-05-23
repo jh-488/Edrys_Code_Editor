@@ -11,8 +11,6 @@
     <title>Code Editor</title>
 
     <script src="https://edrys-org.github.io/edrys/module/edrys.js"></script>
-    <script src="./split.min.js"></script>
-    <script defer src="https://edrys-org.github.io/agent-command-runner/command-runner.js"></script>
 
     <link rel="stylesheet" href="https://edrys-org.github.io/edrys/module/vendor/water.min.css" />
     <link rel="stylesheet" href="https://edrys-org.github.io/edrys/module/vendor/open-iconic/css/open-iconic.min.css" />
@@ -37,32 +35,13 @@
         <span class="oi" data-glyph="media-play"></span>
         Run Code
     </button>
-    <div class="split">
-        <div id="commands" style="display: none;"></div>
-        <div id="editor"></div>
-        <div id="terminal"></div>
+    <div id="editor" style="height: 100%;"></div>
     </div>
 
     <script>
 
         let init = false
-        Edrys.onUpdate((e) => {
-            if (!init) {
-                if (Edrys.role == 'station') {
-                    document.getElementById('commands').style.display = 'block'
-                }
-
-                Split(Edrys.role == 'station' ?
-                    ['#commands', '#editor', '#terminal'] :
-                    ['#editor', '#terminal'], {
-                    direction: 'vertical',
-                    sizes: Edrys.role == 'station' ? [20, 60, 20] : [80, 20]
-                })
-            }
-
-            init = true
-        })
-
+        
         let language = Edrys?.module?.config?.language || 'cpp'
         let theme = Edrys?.module?.config?.theme || (window.matchMedia &&
             window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
@@ -73,15 +52,16 @@
             if (running) return
             running = true
             document.getElementById('run').disabled = true
-            terminal.setScrollPosition({ scrollTop: 0 });
+            
             let output = 'Running code...\n'
-            cmds = commands.getValue().split('\n').filter(c => !c.startsWith('#'))
+            /*cmds = commands.getValue().split('\n').filter(c => !c.startsWith('#'))
             for (const cmd of cmds) {
                 output += await run_command(cmd.replace('$CODE', btoa(editor.getValue())))
                 Edrys.sendMessage('output', output)
             }
             running = false
             document.getElementById('run').disabled = false
+            */
         }
 
         const client = new Date().getTime()
@@ -111,10 +91,6 @@
             else if (subject == 'run' && Edrys.role == 'station') {
                 runCommands()
             }
-            else if (subject == 'output') {
-                terminal.setValue(body)
-                terminal.revealLineInCenter(0);
-            }
         })
 
 
@@ -123,33 +99,8 @@
 // Right click or Ctrl + S to upload your code.`,
             language: language,
             theme: theme,
-            automaticLayout: true
-        })
+            automaticLayout: true,
 
-        const terminal = monaco.editor.create(document.getElementById('terminal'), {
-            value: `Right click or press Ctrl + S to upload code. Press F1 for more options.
-Note your code is not saved, so be sure to keep a copy.`,
-            theme: theme,
-            readOnly: true,
-            lineNumbers: false,
-            minimap: {
-                enabled: false
-            },
-            automaticLayout: true
-        })
-
-        const commands = monaco.editor.create(document.getElementById('commands'), {
-            value: `# Type commands to be run here, one command per line\n
-# The string '$CODE' will be replaced with the submitted code (base64-encoded)
-echo "This is the code submitted:"
-echo $CODE | base64 --decode`,
-            language: 'shell',
-            theme: theme,
-            lineNumbers: false,
-            minimap: {
-                enabled: false
-            },
-            automaticLayout: true
         })
 
         editor.addAction({
@@ -189,14 +140,8 @@ echo $CODE | base64 --decode`,
         editor.onDidChangeModelContent(save);
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
 
-        commands.onDidChangeModelContent(() => {
-            Edrys.setItem('commands', commands.getValue())
-        });
-
         Edrys.onReady(() => {
             editor.setValue(Edrys.getItem('editorText') || Edrys.module.config.editorText || editor.getValue())
-            terminal.setValue(Edrys.module.config.terminalText || terminal.getValue())
-            commands.setValue(Edrys.getItem('commands') || Edrys.module.config.commands || commands.getValue())
         })
 
     </script>
