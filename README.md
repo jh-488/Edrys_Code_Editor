@@ -1,46 +1,27 @@
-# Edrys Code Editor Module
+# Edrys Editor Module
 
-This module allows teachers and students to collaborate over some code and "run" it in some form. It is meant to be used with stations, where commands are going to be run using the [the Command Runner Agent](https://github.com/edrys-org/agent-command-runner), for example to upload code to an embedded device or run it on locally and return the result.
-
+This fork of [Edrys Module-Code](https://github.com/edrys-org/module-code) provides a simplified version, a general editor module that can be connected via the Edrys promiscuous pub-sub feature to different external modules and thus be used for different purposes.
 
 ## Usage
 
 Use this URL to add the module to your class:
 
 ```
-https://edrys-org.github.io/module-code/
+https://cross-lab-project.github.io/edrys_module-editor/index.html
 ```
 
-You may specify the following config:
-
-Next, set up [the Command Runner Agent](https://github.com/edrys-org/agent-command-runner) on your station(s) to allow the module to run commands when the code is run. On the station device, you will be able to specify what commands will be run when students or teachers run the code. Every station has its own set of commands saved (they will be saved locally on each station).
-
-The module will silently fail if the agent is not locally running in the station device (expected to be on the default port `8585`).
-
-You may optionally specify any of the following module config:
+You may optionally specify any of the following module config, the `runCommand` is the only setting that is required:
 
 ```js
 {
     "editorText": "Starting text in editor...",
-    "terminalText": "Starting text in terminal...",
-    "commands": "Default commands",
+    "runCommand": "execute", // this is the subject under which the current code will be published for execution 
     "language": "cpp", // https://microsoft.github.io/monaco-editor
     "theme": "light"
 }
 ```
 
-## Arduino example
+`runCommand` defines the subject under which the current editor-input will be published.
+Other modules such as the [edrys_module-pyxtermjs](https://github.com/Cross-Lab-Project/edrys_module-pyxtermjs) can be configured to listen to this specific subject and execute some action when they receive this event.
 
-Below is an exmaple where this module is used to allow students to upload code to a live Arduino station.
 
-This is what students and teachers see in the station, where the top section is the code editor, and the bottom section is a terminal showing command output when the code is run (note dark theme is pictured):
-<div align="center">
-<img src="screen-user.png" style="width: 90%"/>
-</div>
-
-When visiting the module on the station device itself, you will also be able to customize what commands will be run for that module (using `$CODE` in the commands to substitue for the submitted code):
-<div align="center">
-<img src="screen-station.png" style="width: 90%"/>
-</div>
-
-Arduino CLI is set up manually beforehand on station devices.
