@@ -49,19 +49,11 @@
 
         let running = false;
         async function runCommands() {
-            if (running) return
-            running = true
-            document.getElementById('run').disabled = true
-            
-            let output = 'Running code...\n'
-            /*cmds = commands.getValue().split('\n').filter(c => !c.startsWith('#'))
-            for (const cmd of cmds) {
-                output += await run_command(cmd.replace('$CODE', btoa(editor.getValue())))
-                Edrys.sendMessage('output', output)
+            console.log("run command")
+
+            if (Edrys.module.config.run_command) {
+                Edrys.sendMessage(Edrys.module.config.run_command, editor.getValue())
             }
-            running = false
-            document.getElementById('run').disabled = false
-            */
         }
 
         const client = new Date().getTime()
