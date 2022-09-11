@@ -15,8 +15,8 @@ You may optionally specify any of the following module config, the `runCommand` 
 ```js
 {
     "editorText": "Starting text in editor...",
-    "runCommand": "execute", // this is the subject under which the current code will be published for execution 
-    "language": "cpp", // https://microsoft.github.io/monaco-editor
+    "runCommand": "execute", 
+    "language": "cpp",
     "theme": "light"
 }
 ```
@@ -24,4 +24,19 @@ You may optionally specify any of the following module config, the `runCommand` 
 `runCommand` defines the subject under which the current editor-input will be published.
 Other modules such as the [edrys_module-pyxtermjs](https://github.com/Cross-Lab-Project/edrys_module-pyxtermjs) can be configured to listen to this specific subject and execute some action when they receive this event.
 
+### Multiple files
+
+It is also possible to define multiple files like this.
+
+```js
+{
+    "file": {
+        "main.cpp": "Hello world...",
+        "main.h": "another file another day"
+    },
+    "runCommand": "execute", 
+    "language": "cpp",
+    "theme": "light"
+}
+```
 
