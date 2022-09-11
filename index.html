@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <meta name="description" content="A live code editor module that can be connected to different edrys-modules" />
     <meta name="show-in" content="station" />
     <title>Code Editor</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script src="https://edrys-org.github.io/edrys/module/edrys.js"></script>
 
@@ -21,121 +24,252 @@
     <script src="./debounce.js"></script>
 
     <script>
-        var require = { paths: { vs: 'monaco-editor/min/vs' } }
+        var require = {
+            paths: {
+                vs: 'monaco-editor/min/vs'
+            }
+        }
     </script>
     <script src="./monaco-editor/min/vs/loader.js"></script>
     <script src="./monaco-editor/min/vs/editor/editor.main.nls.js"></script>
     <script src="./monaco-editor/min/vs/editor/editor.main.js"></script>
 
+    <script src="https://unpkg.com/vue@3"></script>
 </head>
 
 <body>
 
-    <button id="run" style="z-index: 100; position: absolute; right: 5px; bottom: 5px;" onclick="run()">
-        <span class="oi" data-glyph="media-play"></span>
-        Run Code
-    </button>
-    <div id="editor" style="height: 100%;"></div>
+    <div id="app">
+        <div style="height: 640px;" v-if="!multiFileMode">
+            <div id="editor" style="height: 100%; max-height: inherit; max-width: inherit;"></div>
+            <button id="run" style="z-index: 100; position: absolute; right: 5px; bottom: 5px;" @click="runCode">
+                <span class="oi" data-glyph="media-play"></span>
+                Run Code
+            </button>
+        </div>
+
+        <div style="height: 100%;" v-if="multiFileMode">
+            <button id="run" style="z-index: 100; position: absolute; right: 5px; bottom: 5px;" @click="runCode">
+                <span class="oi" data-glyph="media-play"></span>
+                Run Code
+            </button>
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item" v-for="(name, index) in filename">
+                    <a class="nav-link" :class="{ 'active': index === 0 }" data-bs-toggle="tab" :href="'#'+identifier(name)">{{name}}</a>
+                </li>
+            </ul>
+
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <div v-for="(name, index) in filename"
+                    :id="identifier(name)"
+                    class="container tab-pane"
+                    :class="{ 'active': index === 0 }"
+                    style="height: 600px; max-height: 600px; max-width: inherit;">
+                </div>
+        </div>
     </div>
 
+   
+
     <script>
-
-        let init = false
-        
-        let language = Edrys?.module?.config?.language || 'cpp'
-        let theme = Edrys?.module?.config?.theme || (window.matchMedia &&
-            window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
-
-
-        let running = false;
-        async function runCommands() {
-            console.log("run command")
-
-            if (Edrys.module.config.runCommand) {
-                Edrys.sendMessage(Edrys.module.config.runCommand, editor.getValue())
-            }
-        }
-
+        const CONTENT = "// Type code here...\n// Right click or Ctrl + S to upload your code.\n"
+        const EDITOR = 'editor'
+        var sendMsgNext = true
         const client = new Date().getTime()
-        let sendMsgNext = true
-        function save() {
-            const value = editor.getValue()
-            if (sendMsgNext)
-                Edrys.sendMessage('update', JSON.stringify({ value, client }))
-            else
-                sendMsgNext = !sendMsgNext
-            Edrys.setItem('editorText', value)
+        var editor = {}
+
+        function identifier(id) {
+            return id.replace(".", "_").replace("/", "__")
         }
 
         function run() {
             Edrys.sendMessage('run', '')
         }
 
-        Edrys.onMessage(({ from, subject, body }) => {
+        function initEditor({
+            id,
+            content,
+            language,
+            theme
+        }) {
+            
+            const editor_ = monaco.editor.create(document.getElementById(id), {
+                value: content,
+                language: language,
+                theme: theme,
+                automaticLayout: true,
+            })
 
-            if (subject == 'update') {
-                const b = JSON.parse(body)
-                if (b.client == client) return
-                console.log(b.client, client)
-                sendMsgNext = false
-                editor.setValue(b.value)
+            
+            function save() {
+                const value = editor_.getValue()
+                
+                if (sendMsgNext) {
+                    Edrys.sendMessage('update', JSON.stringify({ id, value, client }))
+                } else {
+                    sendMsgNext = !sendMsgNext
+                }
+
+                Edrys.setItem(`editorText_${id}`, value)
             }
-            else if (subject == 'run' && Edrys.role == 'station') {
-                runCommands()
+
+            editor_.addAction({
+                id: 'upload-code',
+                label: 'Save & upload code...',
+                keybindings: [
+                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+                ],
+                precondition: null,
+                keybindingContext: null,
+                contextMenuGroupId: 'navigation',
+                contextMenuOrder: 0,
+                run: function (ed) {
+                    save()
+                    //run()
+                    return null
+                }
+            });
+
+            editor_.addAction({
+                id: 'toggle-theme',
+                label: 'Toggle dark theme',
+                precondition: null,
+                keybindingContext: null,
+                contextMenuGroupId: 'navigation',
+                contextMenuOrder: 1,
+                run: function (ed) {
+                    if (Edrys.module) {
+                        let _theme = Edrys.getItem('theme') == 'vs-light' ? 'vs-dark' : 'vs-light'
+                        ed.updateOptions({
+                            theme: _theme
+                        })
+                        Edrys.setItem('theme', _theme)
+                    }
+                    return null
+                }
+            });
+
+            editor_.onDidChangeModelContent(save);
+            editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
+
+            return editor_
+        }
+
+
+        const {
+            createApp
+        } = Vue
+
+        const app = createApp({
+            data() {
+                return {
+                    multiFileMode: null,
+                    filename: []
+                }
+            },
+
+            methods: {
+                runCode() {
+                    run()
+                },
+
+                identifier(id) {
+                    return identifier(id)
+                },
+
+                init({id, content, language, theme}) {
+                    if (typeof content === "string") {
+                        // in this case only a single file will be generated
+                        this.multiFileMode = false
+                        editor = {}
+                        editor[this.identifier(id)] = initEditor({id, content, language, theme})
+                    } else {
+                        this.multiFileMode = true
+                        
+                        for(const name in content) {
+                            this.filename.push(name)
+                        }
+                    }
+                },
+
+                initFiles({id, content, language, theme}) {
+                    editor = {}
+
+                    for(const filename in content) {
+                        let id = this.identifier(filename)
+                        editor[id] = initEditor({
+                            id,
+                            content: content[filename],
+                            language,
+                            theme
+                        })
+                    }
+                }
             }
         })
 
-
-        const editor = monaco.editor.create(document.getElementById('editor'), {
-            value: `// Type code here...
-// Right click or Ctrl + S to upload your code.`,
-            language: language,
-            theme: theme,
-            automaticLayout: true,
-
-        })
-
-        editor.addAction({
-            id: 'upload-code',
-            label: 'Save & upload code...',
-            keybindings: [
-                monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
-            ],
-            precondition: null,
-            keybindingContext: null,
-            contextMenuGroupId: 'navigation',
-            contextMenuOrder: 0,
-            run: function (ed) {
-                save()
-                run()
-                return null
-            }
-        });
-
-        editor.addAction({
-            id: 'toggle-theme',
-            label: 'Toggle dark theme',
-            precondition: null,
-            keybindingContext: null,
-            contextMenuGroupId: 'navigation',
-            contextMenuOrder: 1,
-            run: function (ed) {
-                let _theme = Edrys.getItem('theme') == 'vs-light' ? 'vs-dark' : 'vs-light'
-                ed.updateOptions({
-                    theme: _theme
-                })
-                Edrys.setItem('theme', _theme)
-                return null
-            }
-        });
-
-        editor.onDidChangeModelContent(save);
-        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
+        const ui = app.mount("#app")
 
         Edrys.onReady(() => {
-            editor.setValue(Edrys.getItem('editorText') || Edrys.module.config.editorText || editor.getValue())
+            const language = Edrys?.module?.config?.language || 'cpp'
+            const theme = Edrys?.module?.config?.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
+
+            if (Edrys.module.config.file) {
+                const content = Edrys.module.config.file
+
+                for(key in content) {
+                    content[key] = Edrys.getItem(`editorText_${identifier(key)}`) || content[key] || CONTENT
+                }
+                
+                ui.init({id: "editor", content, language, theme})
+
+                setTimeout(function(){
+                    ui.initFiles({id: "editor", content, language, theme})
+
+                }, 1000)
+            }
+            else {
+                const content = Edrys.getItem('editorText_editor') || Edrys.module.config.editorText || CONTENT
+            
+                ui.init({id: EDITOR, content, language, theme})
+            }   
         })
 
+
+        Edrys.onMessage(({ from, subject, body }) => {
+            if (subject == 'update') {
+                const b = JSON.parse(body)
+
+                if (b.client == client) return
+                
+                // console.log(b.client, client)
+                
+                sendMsgNext = false
+                editor[b.id].setValue(b.value)
+            }
+            else if (subject == 'run' && Edrys.role == 'station') {
+                
+                body = ""
+
+                if(ui.multiFileMode) {
+                    let file = {}
+                    for (const name of ui.filename) {
+                        file[name] = editor[identifier(name)].getValue()
+                    }
+
+                    body = file
+                }
+                else {
+                    body = editor['editor'].getValue()    
+                }
+
+                if (Edrys.module.config.runCommand) {
+                    Edrys.sendMessage(Edrys.module.config.runCommand, body)
+                }      
+            }
+        })
     </script>
 
     <style>
