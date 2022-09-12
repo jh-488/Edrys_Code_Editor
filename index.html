@@ -227,11 +227,10 @@
 
                 setTimeout(function(){
                     ui.initFiles({id: "editor", content, language, theme})
-
                 }, 1000)
             }
             else {
-                const content = Edrys.getItem('editorText_editor') || Edrys.module.config.editorText || CONTENT
+                const content = Edrys.getItem(`editorText_${EDITOR}`) || Edrys.module.config.editorText || CONTENT
             
                 ui.init({id: EDITOR, content, language, theme})
             }   
@@ -259,10 +258,10 @@
                         file[name] = editor[identifier(name)].getValue()
                     }
 
-                    body = file
+                    body = JSON.stringify({ file })
                 }
                 else {
-                    body = editor['editor'].getValue()    
+                    body = editor[EDITOR].getValue()    
                 }
 
                 if (Edrys.module.config.runCommand) {
