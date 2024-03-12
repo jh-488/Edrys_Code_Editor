@@ -259,17 +259,13 @@
                     }
 
                     body = JSON.stringify({ file })
-
-                    console.log("body1", body);
                 }
                 else {
                     body = editor[EDITOR].getValue() 
-                    console.log("body2", body);   
                 }
 
                 if (Edrys.module.config.runCommand) {
                     Edrys.sendMessage(Edrys.module.config.runCommand, body)
-                    console.log("body3", body);
                 }      
             }
         })
