@@ -235,7 +235,9 @@
                 ui.init({id: EDITOR, content, language, theme})
             }   
         })
-
+        
+        // connect to the websocket server
+        var socket = new WebSocket("ws://localhost:8080");
 
         Edrys.onMessage(({ from, subject, body }) => {
             if (subject == 'update') {
@@ -266,7 +268,10 @@
 
                 if (Edrys.module.config.runCommand) {
                     Edrys.sendMessage(Edrys.module.config.runCommand, body)
-                }      
+                } 
+
+                // send the code through socket
+                socket.send(body);      
             }
         })
     </script>

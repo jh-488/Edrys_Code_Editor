@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <button onclick="sendMessage()">send</button>
+</body>
+<script>
+    const data = " \
+            void setup() { \
+             \
+            pinMode(LED_BUILTIN, OUTPUT); \
+            } \
+            \
+             \
+            void loop() { \
+            digitalWrite(LED_BUILTIN, HIGH);   \
+            delay(5000);                    \
+            digitalWrite(LED_BUILTIN, LOW);    \
+            delay(5000);                   \
+            }" 
+    // Create WebSocket connection.
+    const socket = new WebSocket('ws://localhost:8080');
+
+    const sendMessage = () => {
+        socket.send(data);
+    }
+</script>
+</html>
