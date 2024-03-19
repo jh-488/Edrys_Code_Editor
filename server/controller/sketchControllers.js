@@ -24,15 +24,10 @@ compileSketch = (sketchPath) => {
     // Listen for the completion of the compilation process
     compileProcess.on("close", (code) => {
       if (code === 0) {
-        resolve({ message: "Compilation successful!", stdout: stdoutData, stderr: stderrData });
+        resolve({ message: "Compilation successful!", stdout: stdoutData });
       } else {
-        reject({ message: `Compilation failed with code: ${code}`, stdout: stdoutData, stderr: stderrData });
+        reject({ message: `Compilation failed with code: ${code}`, stderr: stderrData });
       }
-    });
-
-    // Listen for errors in the compilation process
-    compileProcess.on("error", (error) => {
-      reject({ message: `Compilation process encountered an error: ${error.message}`, stdout: stdoutData, stderr: stderrData });
     });
   });
 };
@@ -59,15 +54,10 @@ uploadSketch = (port, sketchPath) => {
     // Listen for the completion of the upload process
     uploadProcess.on("close", (code) => {
       if (code === 0) {
-        resolve({ message: "Upload successful!", stdout: stdoutData, stderr: stderrData });
+        resolve({ message: "Upload successful!", stdout: stdoutData });
       } else {
-        reject({ message: `Upload failed with code: ${code}`, stdout: stdoutData, stderr: stderrData });
+        reject({ message: `Upload failed with code: ${code}`, stderr: stderrData });
       }
-    });
-
-    // Listen for errors in the upload process
-    uploadProcess.on("error", (error) => {
-      reject({ message: `Upload process encountered an error: ${error.message}`, stdout: stdoutData, stderr: stderrData });
     });
   });
 };

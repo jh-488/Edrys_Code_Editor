@@ -240,7 +240,7 @@
             })
 
             const displayMessage = (message) => {
-                document.getElementById("server-messages").innerHTML += message + "<br>";
+                document.getElementById("server-messages").innerHTML = message;
             };
 
             // connect to the websocket server
@@ -249,14 +249,14 @@
             // Event listener to handle WebSocket messages
             socket.onmessage = (event) => {
                 var data = JSON.parse(event.data);
+
                 if (data.error) {
                     displayMessage("Error: " + data.error);
                 } else {
                     displayMessage(data.message);
                     if (data.stdout) {
                         displayMessage(data.stdout);
-                    }
-                    if (data.stderr) {
+                    }else if (data.stderr) {
                         displayMessage(data.stderr);
                     }
                 }
@@ -292,9 +292,6 @@
                     if (Edrys.module.config.runCommand) {
                         Edrys.sendMessage(Edrys.module.config.runCommand, body)
                     }
-
-                    // Clear the server messages
-                    document.getElementById("server-messages").innerHTML = "";
 
                     // send the code through socket
                     socket.send(body);
