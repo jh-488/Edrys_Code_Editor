@@ -248,9 +248,6 @@
 
             // Event listener to handle WebSocket messages
             socket.onmessage = (event) => {
-                // Clear the server messages
-                document.getElementById("server-messages").innerHTML = "";
-
                 var data = JSON.parse(event.data);
                 if (data.error) {
                     displayMessage("Error: " + data.error);
@@ -295,6 +292,9 @@
                     if (Edrys.module.config.runCommand) {
                         Edrys.sendMessage(Edrys.module.config.runCommand, body)
                     }
+
+                    // Clear the server messages
+                    document.getElementById("server-messages").innerHTML = "";
 
                     // send the code through socket
                     socket.send(body);
