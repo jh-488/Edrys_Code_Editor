@@ -48,9 +48,7 @@
                 Run Code
             </button>
             <!-- To display server messages -->
-            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;">
-                yooo
-            </div>
+            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;"></div>
         </div>
 
         <div style="height: 100%;" v-if="multiFileMode">
@@ -59,9 +57,7 @@
                 Run Code
             </button>
             <!-- To display server messages -->
-            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;">
-                yooo
-            </div>
+            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;"></div>
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" v-for="(name, index) in filename">
@@ -244,7 +240,7 @@
             })
 
             const displayMessage = (message) => {
-                    document.getElementById("server-messages").innerHTML = message;
+                document.getElementById("server-messages").innerHTML += message + "<br>";
             };
 
             // connect to the websocket server
@@ -252,16 +248,19 @@
 
             // Event listener to handle WebSocket messages
             socket.onmessage = (event) => {
+                // Clear the server messages
+                displayMessage("");
+                
                 var data = JSON.parse(event.data);
                 if (data.error) {
                     displayMessage("Error: " + data.error);
                 } else {
                     displayMessage(data.message);
                     if (data.stdout) {
-                        displayMessage("Stdout: " + data.stdout);
+                        displayMessage(data.stdout);
                     }
                     if (data.stderr) {
-                        displayMessage("Stderr: " + data.stderr);
+                        displayMessage(data.stderr);
                     }
                 }
             };

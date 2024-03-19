@@ -45,21 +45,29 @@ uploadSketch = (port, sketchPath) => {
     const uploadProcess = spawn("arduino-cli", args);
 
     // Listen for messages and errors in the upload process
+    let stdoutData = ""; 
+    let stderrData = ""; 
+
     uploadProcess.stdout.on("data", (data) => {
-      console.log(data.toString());
+      stdoutData += data.toString(); 
     });
 
     uploadProcess.stderr.on("data", (data) => {
-      console.log("Compilation error:", data.toString());
+      stderrData += data.toString();
     });
 
     // Listen for the completion of the upload process
     uploadProcess.on("close", (code) => {
       if (code === 0) {
-        resolve("Upload successful!");
+        resolve({ message: "Upload successful!", stdout: stdoutData, stderr: stderrData });
       } else {
-        reject(new Error(`Upload failed with code: ${code}`));
+        reject({ message: `Upload failed with code: ${code}`, stdout: stdoutData, stderr: stderrData });
       }
+    });
+
+    // Listen for errors in the upload process
+    uploadProcess.on("error", (error) => {
+      reject({ message: `Upload process encountered an error: ${error.message}`, stdout: stdoutData, stderr: stderrData });
     });
   });
 };

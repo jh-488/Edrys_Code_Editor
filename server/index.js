@@ -31,11 +31,12 @@ WebSocketServer.on("connection", (ws, req) => {
     fs.writeFileSync(sketchPath, data, "utf8");
 
     try {
-      const { message, stdout, stderr } = await compileSketch(sketchPath);
-      await uploadSketch(port, sketchPath);
+      // Compile and upload the sketch and send the response to the client
+      const { message: compileMessage, stdout: compileStdout, stderr: compileStderr } = await compileSketch(sketchPath);
+      ws.send(JSON.stringify({ message: compileMessage, stdout: compileStdout, stderr: compileStderr }));
 
-      // Send response to client
-      ws.send(JSON.stringify({ message, stdout, stderr }));
+      const { message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr } = await uploadSketch(port, sketchPath);
+      ws.send(JSON.stringify({ message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr }));
     } catch (error) {
       console.error(error);
 

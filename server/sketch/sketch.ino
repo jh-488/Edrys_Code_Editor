@@ -22,7 +22,7 @@ void setup() {
 
   // initialize serial output
   Serial.begin(9600);
-  Serial.println("Hello Mom")
+  Serial.println("Hello Mom");
 }
 
 // the loop function runs over and over again forever
