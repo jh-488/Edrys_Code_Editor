@@ -43,21 +43,25 @@
     <div id="app">
         <div style="height: 640px;" v-if="!multiFileMode">
             <div id="editor" style="height: 100%; max-height: inherit; max-width: inherit;"></div>
-            <button id="run" style="z-index: 100; position: absolute; right: 5px; bottom: 5px;" @click="runCode">
-                <span class="oi" data-glyph="media-play"></span>
-                Run Code
-            </button>
-            <!-- To display server messages -->
-            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;"></div>
+            <div class="editor_output">
+                <!-- To display server messages -->
+                <div id="server-messages"></div>
+                <button id="run"  @click="runCode">
+                    <span class="oi" data-glyph="media-play"></span>
+                    Run Code
+                </button>
+            </div>
         </div>
 
         <div style="height: 100%;" v-if="multiFileMode">
-            <button id="run" style="z-index: 100; position: absolute; right: 5px; bottom: 5px;" @click="runCode">
-                <span class="oi" data-glyph="media-play"></span>
-                Run Code
-            </button>
-            <!-- To display server messages -->
-            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;"></div>
+            <div class="editor_output">
+                <!-- To display server messages -->
+                <div id="server-messages"></div>
+                <button id="run"  @click="runCode">
+                    <span class="oi" data-glyph="media-play"></span>
+                    Run Code
+                </button>
+            </div>
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" v-for="(name, index) in filename">
@@ -253,12 +257,7 @@
                 if (data.error) {
                     displayMessage("Error: " + data.error);
                 } else {
-                    displayMessage(data.message);
-                    if (data.stdout) {
-                        displayMessage(data.stdout);
-                    }else if (data.stderr) {
-                        displayMessage(data.stderr);
-                    }
+                    displayMessage(data.message + "\n" + (data.stdout ? data.stdout : data.stderr));
                 }
             };
 
@@ -314,6 +313,23 @@
             .gutter {
                 background-repeat: no-repeat;
                 background-position: 50%;
+            }
+
+            .editor_output {
+                display: grid; 
+                grid-template-columns: 5fr 1fr; 
+                gap: 5px; 
+                position: absolute; 
+                bottom: 5px;
+            }
+
+            #run {
+                transition: all .3s ease-in;
+            }
+
+            #run:hover {
+                background-color: #ececec;
+                color: #0f0f0f;
             }
 
             @media (prefers-color-scheme: light) {
