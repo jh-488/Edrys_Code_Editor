@@ -293,7 +293,11 @@
                     }
 
                     // send the code through socket
-                    socket.send(body);
+                    if(!socket) {
+                        displayMessage("Error: No connection to the server");
+                    } else {
+                        socket.send(body);
+                    }
                 }
             })
         </script>
@@ -316,20 +320,24 @@
             }
 
             .editor_output {
-                display: grid; 
-                grid-template-columns: 5fr 1fr; 
+                width: 100%;
+                padding: 5px;
+                display: flex;
+                justify-content: space-between;
                 gap: 5px; 
                 position: absolute; 
                 bottom: 5px;
             }
 
             #run {
+                background-color: #ececec;
+                color: #0f0f0f;
                 transition: all .3s ease-in;
             }
 
             #run:hover {
-                background-color: #ececec;
-                color: #0f0f0f;
+                background-color: #0f0f0f;
+                color: #ececec;
             }
 
             @media (prefers-color-scheme: light) {
