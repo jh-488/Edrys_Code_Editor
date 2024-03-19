@@ -251,7 +251,7 @@
                 var data = JSON.parse(event.data);
 
                 if (data.error) {
-                    displayMessage("Error: " + data.error + (data.stderr? "\n" + data.stderr : ""));
+                    displayMessage("Error: " + data.error);
                 } else {
                     displayMessage(data.message);
                     if (data.stdout) {

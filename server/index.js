@@ -41,7 +41,7 @@ WebSocketServer.on("connection", (ws, req) => {
       console.error(error);
 
       // Send error response to client
-      ws.send(JSON.stringify({ error: error.message }));
+      ws.send(JSON.stringify({ error: error.message + error.stderr }));
     }
   });
 });
