@@ -30,10 +30,18 @@ WebSocketServer.on("connection", (ws, req) => {
   ws.on("message", async (data) => {
     fs.writeFileSync(sketchPath, data, "utf8");
 
-    await compileSketch(sketchPath)
-      .then(() => uploadSketch(port, sketchPath))
-      .then((message) => console.log(message))
-      .catch((error) => console.error(error));
+    try {
+      const { message, stdout, stderr } = await compileSketch(sketchPath);
+      await uploadSketch(port, sketchPath);
+
+      // Send response to client
+      ws.send(JSON.stringify({ message, stdout, stderr }));
+    } catch (error) {
+      console.error(error);
+
+      // Send error response to client
+      ws.send(JSON.stringify({ error: error.message }));
+    }
   });
 });
 

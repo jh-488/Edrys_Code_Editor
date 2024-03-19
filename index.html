@@ -16,7 +16,8 @@
     <script src="https://cross-lab-project.github.io/edrys-Lite/module/edrys.js"></script>
 
     <link rel="stylesheet" href="https://cross-lab-project.github.io/edrys-Lite/module/vendor/water.min.css" />
-    <link rel="stylesheet" href="https://cross-lab-project.github.io/edrys-Lite/module/vendor/open-iconic/css/open-iconic.min.css" />
+    <link rel="stylesheet"
+        href="https://cross-lab-project.github.io/edrys-Lite/module/vendor/open-iconic/css/open-iconic.min.css" />
 
     <link rel="stylesheet" data-name="monaco-editor/min/vs/editor/editor.main"
         href="monaco-editor/min/vs/editor/editor.main.css">
@@ -46,6 +47,10 @@
                 <span class="oi" data-glyph="media-play"></span>
                 Run Code
             </button>
+            <!-- To display server messages -->
+            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;">
+                yooo
+            </div>
         </div>
 
         <div style="height: 100%;" v-if="multiFileMode">
@@ -53,264 +58,286 @@
                 <span class="oi" data-glyph="media-play"></span>
                 Run Code
             </button>
+            <!-- To display server messages -->
+            <div id="server-messages" style="position: absolute; left: 5px; bottom: 5px;">
+                yooo
+            </div>
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item" v-for="(name, index) in filename">
-                    <a class="nav-link" :class="{ 'active': index === 0 }" data-bs-toggle="tab" :href="'#'+identifier(name)">{{name}}</a>
+                    <a class="nav-link" :class="{ 'active': index === 0 }" data-bs-toggle="tab"
+                        :href="'#'+identifier(name)">{{name}}</a>
                 </li>
             </ul>
 
             <!-- Tab panes -->
             <div class="tab-content">
-                <div v-for="(name, index) in filename"
-                    :id="identifier(name)"
-                    class="container tab-pane"
-                    :class="{ 'active': index === 0 }"
-                    style="height: 600px; max-height: 600px; max-width: inherit;">
+                <div v-for="(name, index) in filename" :id="identifier(name)" class="container tab-pane"
+                    :class="{ 'active': index === 0 }" style="height: 600px; max-height: 600px; max-width: inherit;">
                 </div>
+            </div>
         </div>
-    </div>
 
-   
 
-    <script>
-        const CONTENT = "// Type code here...\n// Right click or Ctrl + S to upload your code.\n"
-        const EDITOR = 'editor'
-        var sendMsgNext = true
-        const client = new Date().getTime()
-        var editor = {}
 
-        function identifier(id) {
-            return id.replace(".", "_").replace("/", "__")
-        }
+        <script>
+            const CONTENT = "// Type code here...\n// Right click or Ctrl + S to upload your code.\n"
+            const EDITOR = 'editor'
+            var sendMsgNext = true
+            const client = new Date().getTime()
+            var editor = {}
 
-        function run() {
-            Edrys.sendMessage('run', '')
-        }
-
-        function initEditor({
-            id,
-            content,
-            language,
-            theme
-        }) {
-            
-            const editor_ = monaco.editor.create(document.getElementById(id), {
-                value: content,
-                language: language,
-                theme: theme,
-                automaticLayout: true,
-            })
-
-            
-            function save() {
-                const value = editor_.getValue()
-                
-                if (sendMsgNext) {
-                    Edrys.sendMessage('update', JSON.stringify({ id, value, client }))
-                } else {
-                    sendMsgNext = !sendMsgNext
-                }
-
-                Edrys.setItem(`editorText_${id}`, value)
+            function identifier(id) {
+                return id.replace(".", "_").replace("/", "__")
             }
 
-            editor_.addAction({
-                id: 'upload-code',
-                label: 'Save & upload code...',
-                keybindings: [
-                    monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
-                ],
-                precondition: null,
-                keybindingContext: null,
-                contextMenuGroupId: 'navigation',
-                contextMenuOrder: 0,
-                run: function (ed) {
-                    save()
-                    //run()
-                    return null
-                }
-            });
+            function run() {
+                Edrys.sendMessage('run', '')
+            }
 
-            editor_.addAction({
-                id: 'toggle-theme',
-                label: 'Toggle dark theme',
-                precondition: null,
-                keybindingContext: null,
-                contextMenuGroupId: 'navigation',
-                contextMenuOrder: 1,
-                run: function (ed) {
-                    if (Edrys.module) {
-                        let _theme = Edrys.getItem('theme') == 'vs-light' ? 'vs-dark' : 'vs-light'
-                        ed.updateOptions({
-                            theme: _theme
-                        })
-                        Edrys.setItem('theme', _theme)
-                    }
-                    return null
-                }
-            });
+            function initEditor({
+                id,
+                content,
+                language,
+                theme
+            }) {
 
-            editor_.onDidChangeModelContent(save);
-            editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
-
-            return editor_
-        }
+                const editor_ = monaco.editor.create(document.getElementById(id), {
+                    value: content,
+                    language: language,
+                    theme: theme,
+                    automaticLayout: true,
+                })
 
 
-        const {
-            createApp
-        } = Vue
+                function save() {
+                    const value = editor_.getValue()
 
-        const app = createApp({
-            data() {
-                return {
-                    multiFileMode: null,
-                    filename: []
-                }
-            },
-
-            methods: {
-                runCode() {
-                    run()
-                },
-
-                identifier(id) {
-                    return identifier(id)
-                },
-
-                init({id, content, language, theme}) {
-                    if (typeof content === "string") {
-                        // in this case only a single file will be generated
-                        this.multiFileMode = false
-                        editor = {}
-                        editor[this.identifier(id)] = initEditor({id, content, language, theme})
+                    if (sendMsgNext) {
+                        Edrys.sendMessage('update', JSON.stringify({ id, value, client }))
                     } else {
-                        this.multiFileMode = true
-                        
-                        for(const name in content) {
-                            this.filename.push(name)
+                        sendMsgNext = !sendMsgNext
+                    }
+
+                    Edrys.setItem(`editorText_${id}`, value)
+                }
+
+                editor_.addAction({
+                    id: 'upload-code',
+                    label: 'Save & upload code...',
+                    keybindings: [
+                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
+                    ],
+                    precondition: null,
+                    keybindingContext: null,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 0,
+                    run: function (ed) {
+                        save()
+                        //run()
+                        return null
+                    }
+                });
+
+                editor_.addAction({
+                    id: 'toggle-theme',
+                    label: 'Toggle dark theme',
+                    precondition: null,
+                    keybindingContext: null,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 1,
+                    run: function (ed) {
+                        if (Edrys.module) {
+                            let _theme = Edrys.getItem('theme') == 'vs-light' ? 'vs-dark' : 'vs-light'
+                            ed.updateOptions({
+                                theme: _theme
+                            })
+                            Edrys.setItem('theme', _theme)
+                        }
+                        return null
+                    }
+                });
+
+                editor_.onDidChangeModelContent(save);
+                editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
+
+                return editor_
+            }
+
+
+            const {
+                createApp
+            } = Vue
+
+            const app = createApp({
+                data() {
+                    return {
+                        multiFileMode: null,
+                        filename: []
+                    }
+                },
+
+                methods: {
+                    runCode() {
+                        run()
+                    },
+
+                    identifier(id) {
+                        return identifier(id)
+                    },
+
+                    init({ id, content, language, theme }) {
+                        if (typeof content === "string") {
+                            // in this case only a single file will be generated
+                            this.multiFileMode = false
+                            editor = {}
+                            editor[this.identifier(id)] = initEditor({ id, content, language, theme })
+                        } else {
+                            this.multiFileMode = true
+
+                            for (const name in content) {
+                                this.filename.push(name)
+                            }
+                        }
+                    },
+
+                    initFiles({ id, content, language, theme }) {
+                        editor = {}
+
+                        for (const filename in content) {
+                            let id = this.identifier(filename)
+                            editor[id] = initEditor({
+                                id,
+                                content: content[filename],
+                                language,
+                                theme
+                            })
                         }
                     }
-                },
-
-                initFiles({id, content, language, theme}) {
-                    editor = {}
-
-                    for(const filename in content) {
-                        let id = this.identifier(filename)
-                        editor[id] = initEditor({
-                            id,
-                            content: content[filename],
-                            language,
-                            theme
-                        })
-                    }
                 }
-            }
-        })
+            })
 
-        const ui = app.mount("#app")
+            const ui = app.mount("#app")
 
-        Edrys.onReady(() => {
-            const language = Edrys?.module?.config?.language || 'cpp'
-            const theme = Edrys?.module?.config?.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
+            Edrys.onReady(() => {
+                const language = Edrys?.module?.config?.language || 'cpp'
+                const theme = Edrys?.module?.config?.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
 
-            if (Edrys.module.config.file) {
-                const content = Edrys.module.config.file
+                if (Edrys.module.config.file) {
+                    const content = Edrys.module.config.file
 
-                for(key in content) {
-                    content[key] = Edrys.getItem(`editorText_${identifier(key)}`) || content[key] || CONTENT
-                }
-                
-                ui.init({id: "editor", content, language, theme})
-
-                setTimeout(function(){
-                    ui.initFiles({id: "editor", content, language, theme})
-                }, 1000)
-            }
-            else {
-                const content = Edrys.getItem(`editorText_${EDITOR}`) || Edrys.module.config.editorText || CONTENT
-            
-                ui.init({id: EDITOR, content, language, theme})
-            }   
-        })
-        
-        // connect to the websocket server
-        var socket = new WebSocket("ws://localhost:8080");
-
-        Edrys.onMessage(({ from, subject, body }) => {
-            if (subject == 'update') {
-                const b = JSON.parse(body)
-
-                if (b.client == client) return
-                
-                // console.log(b.client, client)
-                
-                sendMsgNext = false
-                editor[b.id].setValue(b.value)
-            }
-            else if (subject == 'run') { // station-less editor && Edrys.role == 'station') {
-                
-                body = ""
-
-                if(ui.multiFileMode) {
-                    let file = {}
-                    for (const name of ui.filename) {
-                        file[name] = editor[identifier(name)].getValue()
+                    for (key in content) {
+                        content[key] = Edrys.getItem(`editorText_${identifier(key)}`) || content[key] || CONTENT
                     }
 
-                    body = JSON.stringify({ file })
+                    ui.init({ id: "editor", content, language, theme })
+
+                    setTimeout(function () {
+                        ui.initFiles({ id: "editor", content, language, theme })
+                    }, 1000)
                 }
                 else {
-                    body = editor[EDITOR].getValue() 
+                    const content = Edrys.getItem(`editorText_${EDITOR}`) || Edrys.module.config.editorText || CONTENT
+
+                    ui.init({ id: EDITOR, content, language, theme })
+                }
+            })
+
+            const displayMessage = (message) => {
+                    document.getElementById("server-messages").innerHTML = message;
+            };
+
+            // connect to the websocket server
+            var socket = new WebSocket("ws://localhost:8080");
+
+            // Event listener to handle WebSocket messages
+            socket.onmessage = (event) => {
+                var data = JSON.parse(event.data);
+                if (data.error) {
+                    displayMessage("Error: " + data.error);
+                } else {
+                    displayMessage(data.message);
+                    if (data.stdout) {
+                        displayMessage("Stdout: " + data.stdout);
+                    }
+                    if (data.stderr) {
+                        displayMessage("Stderr: " + data.stderr);
+                    }
+                }
+            };
+
+            Edrys.onMessage(({ from, subject, body }) => {
+                if (subject == 'update') {
+                    const b = JSON.parse(body)
+
+                    if (b.client == client) return
+
+                    // console.log(b.client, client)
+
+                    sendMsgNext = false
+                    editor[b.id].setValue(b.value)
+                }
+                else if (subject == 'run') { // station-less editor && Edrys.role == 'station') {
+
+                    body = ""
+
+                    if (ui.multiFileMode) {
+                        let file = {}
+                        for (const name of ui.filename) {
+                            file[name] = editor[identifier(name)].getValue()
+                        }
+
+                        body = JSON.stringify({ file })
+                    }
+                    else {
+                        body = editor[EDITOR].getValue()
+                    }
+
+                    if (Edrys.module.config.runCommand) {
+                        Edrys.sendMessage(Edrys.module.config.runCommand, body)
+                    }
+
+                    // send the code through socket
+                    socket.send(body);
+                }
+            })
+        </script>
+
+        <style>
+            html,
+            body,
+            .split {
+                width: 100%;
+                height: 100%;
+                max-width: 100%;
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+            }
+
+            .gutter {
+                background-repeat: no-repeat;
+                background-position: 50%;
+            }
+
+            @media (prefers-color-scheme: light) {
+                .gutter {
+                    background-color: #ececec;
+                }
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .gutter {
+                    background-color: #0f0f0f;
                 }
 
-                if (Edrys.module.config.runCommand) {
-                    Edrys.sendMessage(Edrys.module.config.runCommand, body)
-                } 
-
-                // send the code through socket
-                socket.send(body);      
-            }
-        })
-    </script>
-
-    <style>
-        html,
-        body,
-        .split {
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-        }
-
-        .gutter {
-            background-repeat: no-repeat;
-            background-position: 50%;
-        }
-
-        @media (prefers-color-scheme: light) {
-            .gutter {
-                background-color: #ececec;
-            }
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .gutter {
-                background-color: #0f0f0f;
             }
 
-        }
-
-        .gutter.gutter-vertical {
-            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-            cursor: row-resize;
-        }
-    </style>
+            .gutter.gutter-vertical {
+                background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+                cursor: row-resize;
+            }
+        </style>
 </body>
 
 </html>

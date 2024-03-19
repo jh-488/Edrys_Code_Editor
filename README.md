@@ -33,3 +33,5 @@ To run the server locally :
 * npm install
 * node ./index.js --port "port-name" \
 (e.g. node .\index.js --port COM4)
+
+PS: [Arduino CLI](https://arduino.github.io/arduino-cli/0.35/installation/) with your platform core should be installed on your local machine.
