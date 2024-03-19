@@ -249,8 +249,8 @@
             // Event listener to handle WebSocket messages
             socket.onmessage = (event) => {
                 // Clear the server messages
-                displayMessage("");
-                
+                document.getElementById("server-messages").innerHTML = "";
+
                 var data = JSON.parse(event.data);
                 if (data.error) {
                     displayMessage("Error: " + data.error);
