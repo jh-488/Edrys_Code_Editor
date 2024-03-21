@@ -1,8 +1,8 @@
 const fs = require("fs");
-const express = require("express");
-const app = express();
+/*const express = require("express");
+const app = express();*/
 
-const PORT = 3000;
+const PORT = 8080;
 
 const WebSocket = require("ws");
 const WebSocketServer = new WebSocket.Server({ port: PORT });
@@ -45,4 +45,4 @@ WebSocketServer.on("connection", (ws, req) => {
 });
 
 
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+//app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
