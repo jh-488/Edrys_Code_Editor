@@ -46,10 +46,13 @@
             <div class="editor_output">
                 <!-- To display server messages -->
                 <div id="server-messages"></div>
-                <button id="run"  @click="runCode">
-                    <span class="oi" data-glyph="media-play"></span>
-                    Run Code
-                </button>
+                <div class="run_container">
+                    <input id="port_input" type="text" placeholder="Port Name">
+                    <button id="run"  @click="runCode">
+                        <span class="oi" data-glyph="media-play"></span>
+                        Run Code
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -250,7 +253,7 @@
             // connect to the websocket server
             var socket = new WebSocket("ws://localhost:8080");
 
-            // Event listener to handle WebSocket messages
+            // Event listener to handle received WebSocket messages
             socket.onmessage = (event) => {
                 var data = JSON.parse(event.data);
 
@@ -260,6 +263,7 @@
                     displayMessage(data.message + "\n" + (data.stdout ? data.stdout : data.stderr));
                 }
             };
+
 
             Edrys.onMessage(({ from, subject, body }) => {
                 if (subject == 'update') {
@@ -292,11 +296,17 @@
                         Edrys.sendMessage(Edrys.module.config.runCommand, body)
                     }
 
-                    // send the code through socket if connected
+                    // Get port name from the input field
+                    const portName = document.getElementById("port_input").value;
+
+                    // send the code and the port name through socket if connected
                     if(!socket || socket.readyState !== WebSocket.OPEN) {
-                        displayMessage("Error: No connection to the server");
+                        displayMessage("Error: Server not connected or port name is wrong!!");
                     } else {
-                        socket.send(body);
+                        socket.send({
+                            code: body,
+                            portName: portName
+                        });
                     }
                 }
             })
@@ -328,7 +338,7 @@
                 justify-content: space-between;
                 gap: 5px; 
                 position: absolute; 
-                bottom: 5px;
+                bottom: 0;
                 background-color: #3c3c3c;
             }
 
@@ -336,8 +346,19 @@
                 width: 70%;
             }
 
+            .run_container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+            }
+
+            #port_input {
+                width: 100%;
+            }
+
             #run {
-                height: 50px;
+                width: 100%;
                 background-color: #ececec;
                 color: #0f0f0f;
                 transition: all .3s ease-in;

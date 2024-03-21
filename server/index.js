@@ -14,22 +14,24 @@ const {
 const sketchPath = "./sketch/sketch.ino";
 
 // Serial port where the arduino is connected
-const args = process.argv.slice(2);
+/*const args = process.argv.slice(2);
 const portIndex = args.indexOf("--port");
 const port = portIndex !== -1 ? args[portIndex + 1] : null;
 
 if (!port) {
   console.error("Error: Please provide a serial port using --port <port>");
   process.exit(1);
-};
+};*/
 
 // Compile and upload the sketch after receiving the data (code)
 WebSocketServer.on("connection", (ws, req) => {
   console.log("New client connected");
 
   ws.on("message", async (data) => {
-    fs.writeFileSync(sketchPath, data, "utf8");
+    fs.writeFileSync(sketchPath, data.code, "utf8");
 
+    const port = await data.portName;
+    
     try {
       // Compile and upload the sketch and send the response to the client
       const { message: compileMessage, stdout: compileStdout, stderr: compileStderr } = await compileSketch(sketchPath);
