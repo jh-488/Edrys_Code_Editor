@@ -303,10 +303,10 @@
                     if(!socket || socket.readyState !== WebSocket.OPEN) {
                         displayMessage("Error: Server not connected or port name is wrong!!");
                     } else {
-                        socket.send({
+                        socket.send(JSON.stringify({
                             code: body,
-                            portName: portName
-                        });
+                            port: portName
+                        }));
                     }
                 }
             })
