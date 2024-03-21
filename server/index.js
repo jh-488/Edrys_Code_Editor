@@ -1,11 +1,18 @@
 const fs = require("fs");
-/*const express = require("express");
-const app = express();*/
+const express = require("express");
+const app = express();
 
-const PORT = 8080;
+const WEB_SOCKET_PORT = 8080;
 
+// Websocket server configuration
 const WebSocket = require("ws");
-const WebSocketServer = new WebSocket.Server({ port: PORT });
+const WSServer = WebSocket.Server;
+const server = require('http').createServer();
+const WebSocketServer = new WSServer({
+  server: server,
+  perMessageDeflate: false
+})
+server.on('request', app);
 
 const {
   compileSketch,
@@ -26,14 +33,14 @@ WebSocketServer.on("connection", (ws, req) => {
 
     fs.writeFileSync(sketchPath, parsedData.code, "utf8");
 
-    const boardPort = await parsedData.port;
+    const BOARD_PORT = await parsedData.port;
 
     try {
       // Compile and upload the sketch and send the response to the client
       const { message: compileMessage, stdout: compileStdout, stderr: compileStderr } = await compileSketch(sketchPath);
       ws.send(JSON.stringify({ message: compileMessage, stdout: compileStdout, stderr: compileStderr }));
 
-      const { message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr } = await uploadSketch(boardPort, sketchPath);
+      const { message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr } = await uploadSketch(BOARD_PORT, sketchPath);
       ws.send(JSON.stringify({ message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr }));
     } catch (error) {
       console.error(error);
@@ -45,4 +52,6 @@ WebSocketServer.on("connection", (ws, req) => {
 });
 
 
-//app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
+server.listen(80, function() {
+    console.log(`WebSocket server started at port ${WEB_SOCKET_PORT}`);
+});
