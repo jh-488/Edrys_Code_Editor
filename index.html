@@ -300,8 +300,11 @@
                     const portName = document.getElementById("port_input").value;
 
                     // send the code and the port name through socket if connected
-                    if(!socket || socket.readyState !== WebSocket.OPEN) {
-                        displayMessage("Error: Server not connected or port name is wrong!!");
+                    if(portName.length === 0) {
+                        displayMessage("Please enter a port name!!")
+                    }
+                    else if(!socket || socket.readyState !== WebSocket.OPEN ) {
+                        displayMessage("Error: Server not connected!!");
                     } else {
                         socket.send(JSON.stringify({
                             code: body,
