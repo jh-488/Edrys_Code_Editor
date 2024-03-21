@@ -1,18 +1,14 @@
 const fs = require("fs");
+const http = require("http");
 const express = require("express");
 const app = express();
 
-const WEB_SOCKET_PORT = 8080;
+//const WEB_SOCKET_PORT = 8080;
 
 // Websocket server configuration
 const WebSocket = require("ws");
-const WSServer = WebSocket.Server;
-const server = require('http').createServer();
-const WebSocketServer = new WSServer({
-  server: server,
-  perMessageDeflate: false
-})
-server.on('request', app);
+const server = http.createServer(app);
+const WebSocketServer = new WebSocket.Server({ server: server });
 
 const {
   compileSketch,
@@ -52,6 +48,6 @@ WebSocketServer.on("connection", (ws, req) => {
 });
 
 
-server.listen(80, function() {
-    console.log(`WebSocket server started at port ${WEB_SOCKET_PORT}`);
-});
+server.listen(8080, () => console.log(`Server started at port 8080`));
+//console.log(`Websocket server started at port ${WEB_SOCKET_PORT}`);
+
