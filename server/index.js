@@ -2,8 +2,10 @@ const fs = require("fs");
 const express = require("express");
 const app = express();
 
+const PORT = 3000;
+
 const WebSocket = require("ws");
-const WebSocketServer = new WebSocket.Server({ port: 8080 });
+const WebSocketServer = new WebSocket.Server({ port: PORT });
 
 const {
   compileSketch,
@@ -24,14 +26,14 @@ WebSocketServer.on("connection", (ws, req) => {
 
     fs.writeFileSync(sketchPath, parsedData.code, "utf8");
 
-    const port = await parsedData.port;
+    const boardPort = await parsedData.port;
 
     try {
       // Compile and upload the sketch and send the response to the client
       const { message: compileMessage, stdout: compileStdout, stderr: compileStderr } = await compileSketch(sketchPath);
       ws.send(JSON.stringify({ message: compileMessage, stdout: compileStdout, stderr: compileStderr }));
 
-      const { message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr } = await uploadSketch(port, sketchPath);
+      const { message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr } = await uploadSketch(boardPort, sketchPath);
       ws.send(JSON.stringify({ message: uploadMessage, stdout: uploadStdout, stderr: uploadStderr }));
     } catch (error) {
       console.error(error);
@@ -43,4 +45,4 @@ WebSocketServer.on("connection", (ws, req) => {
 });
 
 
-app.listen(3000, () => console.log(`Listening on port 3000`));
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
