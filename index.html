@@ -251,7 +251,7 @@
             };
 
             // connect to the websocket server
-            var socket = new WebSocket("ws://localhost:8080");
+            var socket = new WebSocket("wss://edrys-code-editor-server.onrender.com:8080");
 
             // Event listener to handle received WebSocket messages
             socket.onmessage = (event) => {

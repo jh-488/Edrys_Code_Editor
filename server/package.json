@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "edrys_code_editor_server",
   "version": "1.0.0",
-  "description": "",
+  "description": "a server to run code from the edrys code editor and upload it to an arduino",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
