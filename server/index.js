@@ -1,23 +1,19 @@
 const fs = require("fs");
-const http = require("http");
-const express = require("express");
-const app = express();
 
-//const WEB_SOCKET_PORT = 8080;
+const WEB_SOCKET_PORT = 8080;
 
 // Websocket server configuration
 const WebSocket = require("ws");
-const server = http.createServer(app);
-const WebSocketServer = new WebSocket.Server({ server: server });
+const WebSocketServer = new WebSocket.Server({ port: WEB_SOCKET_PORT });
 
 const {
   compileSketch,
   uploadSketch,
 } = require("./controller/sketchControllers");
 
+
 // Path where the sketch is stored
 const sketchPath = "./sketch/sketch.ino";
-
 
 // Compile and upload the sketch after receiving the data (code + port name)
 WebSocketServer.on("connection", (ws, req) => {
@@ -48,6 +44,5 @@ WebSocketServer.on("connection", (ws, req) => {
 });
 
 
-server.listen(8080, () => console.log(`Server started at port 8080`));
-//console.log(`Websocket server started at port ${WEB_SOCKET_PORT}`);
+console.log(`Websocket server started at port ${WEB_SOCKET_PORT}`);
 
