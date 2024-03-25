@@ -6,22 +6,22 @@ const WEB_SOCKET_PORT = 8080;
 const WebSocket = require("ws");
 const WebSocketServer = new WebSocket.Server({ port: WEB_SOCKET_PORT });
 
-const {
+/*const {
   compileSketch,
   uploadSketch,
 } = require("./controller/sketchControllers");
 
 
 // Path where the sketch is stored
-const sketchPath = "./sketch/sketch.ino";
+const sketchPath = "./sketch/sketch.ino";*/
 
 // Compile and upload the sketch after receiving the data (code + port name)
 WebSocketServer.on("connection", (ws, req) => {
   console.log("New client connected");
 
   ws.on("message", async (data) => {
-
-    const parsedData = JSON.parse(data);
+    console.log(`${data}`)
+    /*const parsedData = JSON.parse(data);
 
     fs.writeFileSync(sketchPath, parsedData.code, "utf8");
 
@@ -39,7 +39,7 @@ WebSocketServer.on("connection", (ws, req) => {
 
       // Send error response to client
       ws.send(JSON.stringify({ error: error.message + error.stderr }));
-    }
+    }*/
   });
 });
 
