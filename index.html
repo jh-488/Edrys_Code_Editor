@@ -47,7 +47,6 @@
                 <!-- To display server messages -->
                 <div id="server-messages"></div>
                 <div class="run_container">
-                    <input id="port_input" type="text" placeholder="Port Name">
                     <button id="run"  @click="runCode">
                         <span class="oi" data-glyph="media-play"></span>
                         Run Code
@@ -251,7 +250,7 @@
             };
 
             // connect to the websocket server
-            var socket = new WebSocket("wss://edrys-editor-server.onrender.com");
+            var socket = new WebSocket("ws://localhost:8080");
 
             // Event listener to handle received WebSocket messages
             socket.onmessage = (event) => {
@@ -296,14 +295,9 @@
                         Edrys.sendMessage(Edrys.module.config.runCommand, body)
                     }
 
-                    // Get port name from the input field
-                    const portName = document.getElementById("port_input").value;
 
-                    // send the code and the port name through socket if connected
-                    if(portName.length === 0) {
-                        displayMessage("Please enter a port name!!")
-                    }
-                    else if(!socket || socket.readyState !== WebSocket.OPEN ) {
+                    // send the code through socket if connected
+                    if(!socket || socket.readyState !== WebSocket.OPEN ) {
                         displayMessage("Error: Server not connected!!");
                     } else {
                         socket.send(JSON.stringify({
@@ -356,9 +350,6 @@
                 gap: 5px;
             }
 
-            #port_input {
-                width: 100%;
-            }
 
             #run {
                 width: 100%;
