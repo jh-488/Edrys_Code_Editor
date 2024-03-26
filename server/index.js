@@ -31,9 +31,8 @@ WebSocketServer.on("connection", (ws) => {
   console.log("New client connected");
 
   ws.on("message", async (data) => {
-    const parsedData = JSON.parse(data);
 
-    fs.writeFileSync(sketchPath, parsedData.code, "utf8");
+    fs.writeFileSync(sketchPath, data, "utf8");
 
     try {
       // Compile and upload the sketch and send the response to the client

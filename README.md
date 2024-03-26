@@ -24,10 +24,7 @@ Use this URL to add the module to your class:
         if(!socket || socket.readyState !== WebSocket.OPEN ) {
             displayMessage("Error: Server not connected!!");
         } else {
-            socket.send(JSON.stringify({
-                code: body,
-                port: portName
-            }));
+            socket.send(body);
     }
 }
 ```
