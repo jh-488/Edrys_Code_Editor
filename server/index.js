@@ -93,6 +93,10 @@ WebSocketServer.on("connection", (ws) => {
       ws.send(JSON.stringify({ error: "Test for this challenge was not found!!" }));
     }
   });
+
+  ws.on("close", () => {
+    console.log("Client disconnected");
+  });
 });
 
 console.log(`Websocket server started at port ${WEB_SOCKET_PORT}`);
