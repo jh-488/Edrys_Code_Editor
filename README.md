@@ -10,7 +10,7 @@ Use this URL to add the module to your class:
 
 ## Differences from the original Editor
 
-1. The client can now connect to a server running on localhost and send the code to the server (When the "Run Code" button is clicked)
+1. The client can now connect to a server running on a station and send the code to the server (When the "Run Code" button is clicked)
 
 ```js
 {
@@ -20,12 +20,18 @@ Use this URL to add the module to your class:
     Edrys.onMessage(({ from, subject, body }) => {
         ...
 
-        // send the code through socket if connected
-        if(!socket || socket.readyState !== WebSocket.OPEN ) {
-            displayMessage("Error: Server not connected!!");
-        } else {
-            socket.send(body);
-    }
+        if (Edrys.role === "station") {
+            // send the code and the challenge id through socket if connected
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                Edrys.sendMessage('server-response', "Error: Server not connected!!");
+                } else {
+                    socket.send(JSON.stringify({
+                        code: body,
+                        challengeId: Edrys.module.challengeId
+                }));
+            }
+        }
+    } 
 }
 ```
 
@@ -38,18 +44,3 @@ To run the server locally :
 - node index.js --port "PORT_NAME"    (e.g. node index.js --port COM3)
 
 PS: [Arduino CLI](https://arduino.github.io/arduino-cli/0.35/installation/) with your platform core should be installed on your local machine.
-
-
-## Use the server as remote lab
-
-Use this server as a remote lab, where edrys users can upload code to the board remotely :
-
-- Install [ngrok](https://ngrok.com/download) on the machine where the server will run
-- Create an account in ngrok
-- Follow the [ngrok docs](https://ngrok.com/docs/tcp/) to create a tcp endpoint that receives/sends data between the localhost (e.g. on port 8080) and the client (edrys)
-- Change the socket url in the client 
-```js
-{
-    var socket = new WebSocket("ws://ngrok-TCP-address");
-}
-```
