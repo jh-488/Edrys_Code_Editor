@@ -164,6 +164,7 @@
                 editor_.onDidChangeModelContent(save);
                 editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
 
+
                 return editor_
             }
 
@@ -216,15 +217,26 @@
                                 theme
                             })
                         }
+                    },
+
+                    updateEditorContent({ id, content }) {
+                        editor[this.identifier(id)].setValue(content)
                     }
                 }
             })
 
             const ui = app.mount("#app")
 
+            const appElement = document.getElementById("app");
+
             Edrys.onReady(() => {
                 const language = Edrys?.module?.config?.language || 'cpp'
                 const theme = Edrys?.module?.config?.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
+            
+                // if the challenge is time-restricted, the editor should be read-only, until the timer starts
+                if(Edrys.module.challengeType === "time-restricted") {
+                    appElement.classList.add("disabled");
+                }
 
                 if (Edrys.module.config.file) {
                     const content = Edrys.module.config.file
@@ -246,6 +258,23 @@
                 }
             })
 
+
+            // listen for messages from other modules
+            Edrys.onMessage(({ from, subject, body, module }) => {                
+                if (subject === "timer-started") {
+                    // change the editor to writable when the timer starts
+                    appElement.classList.remove("disabled");
+                } else if (subject === "timer-ended") {
+                    // change the editor to read-only when the timer ends and reset starter code
+                    const content = Edrys.module.config.editorText || CONTENT
+
+                    ui.updateEditorContent({ id: EDITOR, content: content });
+
+                    appElement.classList.add("disabled");
+                    displayMessage("");
+                }
+            }, promiscuous=true);
+
             const displayMessage = (message) => {
                 document.getElementById("server-messages").innerHTML = message;
             };
@@ -262,6 +291,9 @@
                 } else if (data.testMessage) {
                     if (data.testPassed) {
                         Edrys.sendMessage("server-response", `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-check' style='color: #63E6BE;'></i></p>`);
+                        
+                        // send winning message to the timer module
+                        Edrys.sendMessage("challenge-solved", "Challenge solved");
                     } else {
                         Edrys.sendMessage("server-response", `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-xmark' style='color: #ff0000;'></i></p>`);
                     }
@@ -324,6 +356,8 @@
                         break
                 }
             })
+
+            
         </script>
 
         <style>
@@ -336,6 +370,11 @@
                 overflow: hidden;
                 margin: 0;
                 padding: 0;
+            }
+
+            .disabled {
+                pointer-events: none;
+                opacity: 0.4;
             }
 
             .gutter {
