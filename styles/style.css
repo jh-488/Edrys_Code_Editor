@@ -1,0 +1,96 @@
+html,
+body,
+.split {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.gutter {
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.editor_output {
+  width: 100%;
+  height: 20%;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  position: absolute;
+  bottom: 0;
+  background-color: #3c3c3c;
+}
+
+#server-messages {
+  width: 70%;
+}
+
+.loader {
+  position: absolute;
+  left: 35%;
+  bottom: 35%;
+  width: 50px;
+  height: 50px;
+  border: 5px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.run_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+#run {
+  width: 100%;
+  background-color: #ececec;
+  color: #0f0f0f;
+  transition: all 0.3s ease-in;
+}
+
+#run:hover {
+  background-color: #0f0f0f;
+  color: #ececec;
+}
+
+@media (prefers-color-scheme: light) {
+  .gutter {
+    background-color: #ececec;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .gutter {
+    background-color: #0f0f0f;
+  }
+}
+
+.gutter.gutter-vertical {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=");
+  cursor: row-resize;
+}

@@ -10,7 +10,6 @@
     <meta name="show-in" content="station" />
     <title>Code Editor</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -22,6 +21,8 @@
 
     <link rel="stylesheet" data-name="monaco-editor/min/vs/editor/editor.main"
         href="monaco-editor/min/vs/editor/editor.main.css">
+
+    <link rel="stylesheet" href="./styles/style.css" />
 
     <script src="./debounce.js"></script>
 
@@ -36,7 +37,9 @@
     <script src="./monaco-editor/min/vs/editor/editor.main.nls.js"></script>
     <script src="./monaco-editor/min/vs/editor/editor.main.js"></script>
 
-    <script src="https://unpkg.com/vue@3"></script>
+    <!-- Vue CDN : https://unpkg.com/vue@3 -->
+    <!-- if unpkg server is down :  https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.min.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.min.js"></script>
 </head>
 
 <body>
@@ -55,15 +58,17 @@
                 </div>
             </div>
         </div>
-
+        
         <div style="height: 100%;" v-if="multiFileMode">
             <div class="editor_output">
                 <!-- To display server messages -->
-                <div id="server-messages"><span class="loader"></span></div>
-                <button id="run"  @click="runCode">
-                    <span class="oi" data-glyph="media-play"></span>
-                    Run Code
-                </button>
+                <div id="server-messages"></div>
+                <div class="run_container">
+                    <button id="run"  @click="runCode">
+                        <span class="oi" data-glyph="media-play"></span>
+                        Run Code
+                    </button>
+                </div>
             </div>
             <!-- Nav tabs -->
             <ul class="nav nav-tabs" role="tablist">
@@ -80,386 +85,8 @@
                 </div>
             </div>
         </div>
+    </div>
 
-
-
-        <script>
-            const CONTENT = "// Type code here...\n// Right click or Ctrl + S to upload your code.\n"
-            const EDITOR = 'editor'
-            var sendMsgNext = true
-            const client = new Date().getTime()
-            var editor = {}
-
-            function identifier(id) {
-                return id.replace(".", "_").replace("/", "__")
-            }
-
-            function run() {
-                Edrys.sendMessage('run', '')
-            }
-
-            function initEditor({
-                id,
-                content,
-                language,
-                theme
-            }) {
-
-                const editor_ = monaco.editor.create(document.getElementById(id), {
-                    value: content,
-                    language: language,
-                    theme: theme,
-                    automaticLayout: true,
-                })
-
-
-                function save() {
-                    const value = editor_.getValue()
-
-                    if (sendMsgNext) {
-                        Edrys.sendMessage('update', JSON.stringify({ id, value, client }))
-                    } else {
-                        sendMsgNext = !sendMsgNext
-                    }
-
-                    Edrys.setItem(`editorText_${id}`, value)
-                }
-
-                editor_.addAction({
-                    id: 'upload-code',
-                    label: 'Save & upload code...',
-                    keybindings: [
-                        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S
-                    ],
-                    precondition: null,
-                    keybindingContext: null,
-                    contextMenuGroupId: 'navigation',
-                    contextMenuOrder: 0,
-                    run: function (ed) {
-                        save()
-                        //run()
-                        return null
-                    }
-                });
-
-                editor_.addAction({
-                    id: 'toggle-theme',
-                    label: 'Toggle dark theme',
-                    precondition: null,
-                    keybindingContext: null,
-                    contextMenuGroupId: 'navigation',
-                    contextMenuOrder: 1,
-                    run: function (ed) {
-                        if (Edrys.module) {
-                            let _theme = Edrys.getItem('theme') == 'vs-light' ? 'vs-dark' : 'vs-light'
-                            ed.updateOptions({
-                                theme: _theme
-                            })
-                            Edrys.setItem('theme', _theme)
-                        }
-                        return null
-                    }
-                });
-
-                editor_.onDidChangeModelContent(save);
-                editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run)
-
-
-                return editor_
-            }
-
-
-            const {
-                createApp
-            } = Vue
-
-            const app = createApp({
-                data() {
-                    return {
-                        multiFileMode: null,
-                        filename: []
-                    }
-                },
-
-                methods: {
-                    runCode() {
-                        run()
-                    },
-
-                    identifier(id) {
-                        return identifier(id)
-                    },
-
-                    init({ id, content, language, theme }) {
-                        if (typeof content === "string") {
-                            // in this case only a single file will be generated
-                            this.multiFileMode = false
-                            editor = {}
-                            editor[this.identifier(id)] = initEditor({ id, content, language, theme })
-                        } else {
-                            this.multiFileMode = true
-
-                            for (const name in content) {
-                                this.filename.push(name)
-                            }
-                        }
-                    },
-
-                    initFiles({ id, content, language, theme }) {
-                        editor = {}
-
-                        for (const filename in content) {
-                            let id = this.identifier(filename)
-                            editor[id] = initEditor({
-                                id,
-                                content: content[filename],
-                                language,
-                                theme
-                            })
-                        }
-                    },
-
-                    updateEditorContent({ id, content }) {
-                        editor[this.identifier(id)].setValue(content)
-                    }
-                }
-            })
-
-            const ui = app.mount("#app")
-
-            const appElement = document.getElementById("app");
-
-            Edrys.onReady(() => {
-                const language = Edrys?.module?.config?.language || 'cpp'
-                const theme = Edrys?.module?.config?.theme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'vs-dark' : 'vs-light')
-            
-                // if the challenge is time-restricted, the editor should be read-only, until the timer starts
-                if(Edrys.module.challengeType === "time-restricted") {
-                    appElement.classList.add("disabled");
-                }
-
-                if (Edrys.module.config.file) {
-                    const content = Edrys.module.config.file
-
-                    for (key in content) {
-                        content[key] = Edrys.getItem(`editorText_${identifier(key)}`) || content[key] || CONTENT
-                    }
-
-                    ui.init({ id: "editor", content, language, theme })
-
-                    setTimeout(function () {
-                        ui.initFiles({ id: "editor", content, language, theme })
-                    }, 1000)
-                }
-                else {
-                    const content = Edrys.getItem(`editorText_${EDITOR}`) || Edrys.module.config.editorText || CONTENT
-
-                    ui.init({ id: EDITOR, content, language, theme })
-                }
-            })
-
-
-            // listen for messages from other modules
-            Edrys.onMessage(({ from, subject, body, module }) => {                
-                if (subject === "timer-started") {
-                    // change the editor to writable when the timer starts
-                    appElement.classList.remove("disabled");
-                } else if (subject === "timer-ended") {
-                    // change the editor to read-only when the timer ends and reset starter code
-                    const content = Edrys.module.config.editorText || CONTENT
-
-                    ui.updateEditorContent({ id: EDITOR, content: content });
-
-                    appElement.classList.add("disabled");
-                    displayMessage("");
-                }
-            }, promiscuous=true);
-
-            const displayMessage = (message) => {
-                document.getElementById("server-messages").innerHTML = message;
-            };
-
-            // connect to the websocket server
-            var socket = new WebSocket("ws://localhost:8080");
-
-            // Event listener to handle received WebSocket messages
-            socket.onmessage = (event) => {
-                var data = JSON.parse(event.data);
-
-                if (data.error) {
-                    Edrys.sendMessage("server-response", "Error: " + data.error);
-                } else if (data.testMessage) {
-                    if (data.testPassed) {
-                        Edrys.sendMessage("server-response", `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-check' style='color: #63E6BE;'></i></p>`);
-                        
-                        // send winning message to the timer module
-                        Edrys.sendMessage("challenge-solved", "Challenge solved");
-                    } else {
-                        Edrys.sendMessage("server-response", `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-xmark' style='color: #ff0000;'></i></p>`);
-                    }
-                } else {
-                    Edrys.sendMessage("server-response", data.message + "\n" + (data.stdout ? data.stdout : data.stderr));
-                }
-            };
-
-
-
-            Edrys.onMessage(({ from, subject, body }) => {
-                switch (subject) {
-                    case 'update':
-                        const b = JSON.parse(body)
-
-                        if (b.client == client) return
-
-                        // console.log(b.client, client)
-
-                        sendMsgNext = false
-                        editor[b.id].setValue(b.value)
-                        break
-                    case 'run':
-                        body = ""
-
-                        if (ui.multiFileMode) {
-                            let file = {}
-                            for (const name of ui.filename) {
-                                file[name] = editor[identifier(name)].getValue()
-                            }
-
-                            body = JSON.stringify({ file })
-                        } else {
-                            body = editor[EDITOR].getValue()
-                        }
-
-                        if (Edrys.module.config.runCommand) {
-                            Edrys.sendMessage(Edrys.module.config.runCommand, body)
-                        }
-
-                        // show loader while waiting for response
-                        Edrys.sendMessage('server-response', "<span class='loader'></span>");
-
-                        if (Edrys.role === "station") {
-                            // send the code through socket if connected
-                            if (!socket || socket.readyState !== WebSocket.OPEN) {
-                                Edrys.sendMessage('server-response', "Error: Server not connected!!");
-                            } else {
-                                socket.send(JSON.stringify({
-                                    code: body,
-                                    challengeId: Edrys.module.challengeId
-                                }));
-                            }
-                        }
-                       
-                        break
-                    // Event listener to handle WebSocket responses
-                    case 'server-response':
-                        displayMessage(body);
-                        break
-                }
-            })
-
-            
-        </script>
-
-        <style>
-            html,
-            body,
-            .split {
-                width: 100%;
-                height: 100%;
-                max-width: 100%;
-                overflow: hidden;
-                margin: 0;
-                padding: 0;
-            }
-
-            .disabled {
-                pointer-events: none;
-                opacity: 0.4;
-            }
-
-            .gutter {
-                background-repeat: no-repeat;
-                background-position: 50%;
-            }
-
-            .editor_output {
-                width: 100%;
-                height: 20%;
-                padding: 5px;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 5px; 
-                position: absolute; 
-                bottom: 0;
-                background-color: #3c3c3c;
-            }
-
-            #server-messages {
-                width: 70%;
-            }
-
-            .loader {
-                position: absolute;
-                left: 35%;
-                bottom: 35%;
-                width: 50px;
-                height: 50px;
-                border: 5px solid #fff;
-                border-bottom-color: transparent;
-                border-radius: 50%;
-                display: inline-block;
-                box-sizing: border-box;
-                animation: rotation 1s linear infinite;
-            }
-
-            @keyframes rotation {
-                0% {
-                    transform: rotate(0deg);
-                }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-
-            .run_container {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 5px;
-            }
-
-
-            #run {
-                width: 100%;
-                background-color: #ececec;
-                color: #0f0f0f;
-                transition: all .3s ease-in;
-            }
-
-            #run:hover {
-                background-color: #0f0f0f;
-                color: #ececec;
-            }
-
-            @media (prefers-color-scheme: light) {
-                .gutter {
-                    background-color: #ececec;
-                }
-            }
-
-            @media (prefers-color-scheme: dark) {
-                .gutter {
-                    background-color: #0f0f0f;
-                }
-
-            }
-
-            .gutter.gutter-vertical {
-                background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
-                cursor: row-resize;
-            }
-        </style>
+    <script src="./script.js"></script>
 </body>
-
 </html>
