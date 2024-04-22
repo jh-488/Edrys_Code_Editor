@@ -147,8 +147,8 @@ const theme =
     : "vs-light");
 
 // if the challenge is time-restricted, the editor should be read-only, until the timer starts
-if (Edrys.module.challengeType === "time-restricted") {
-    appElement.classList.add("disabled");
+if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer") {
+    disableEditor();
 }
 
 if (Edrys.module.config.file) {
@@ -166,6 +166,7 @@ if (Edrys.module.config.file) {
     setTimeout(function () {
         ui.initFiles({ id: "editor", content, language, theme });
     }, 1000);
+
 } else {
     const content =
     Edrys.getItem(`editorText_${EDITOR}`) ||
@@ -176,19 +177,59 @@ if (Edrys.module.config.file) {
 }
 });
 
+function getShortPeerID(id) {
+    const ids = id.split('_');
+  
+    if (ids.length == 2) {
+      return ids[0].slice(6)
+    }
+  
+    return id
+}
+let peerID;
+// get user short id from edrys
+window.addEventListener("message", (message) => {
+    if (message.origin !== "http://localhost:6999") {
+      return;
+    }
+  
+    peerID = getShortPeerID(message.data.username);
+});
+
+// Functions to handle editor state
+const clearEditor = () => {
+    const content = Edrys.module.config.editorText || CONTENT;
+
+    ui.updateEditorContent({ id: EDITOR, content: content });
+
+    displayMessage("");
+};
+
+const disableEditor = () => {
+    appElement.classList.add("disabled");
+};
+
+const enableEditor = () => {
+    appElement.classList.remove("disabled");
+};
+
 // listen for messages from other modules
 Edrys.onMessage(({ from, subject, body, module }) => {
     if (subject === "timer-started") {
         // change the editor to writable when the timer starts
-        appElement.classList.remove("disabled");
+        enableEditor();
     } else if (subject === "timer-ended") {
         // change the editor to read-only when the timer ends and reset starter code
-        const content = Edrys.module.config.editorText || CONTENT;
+        clearEditor();
 
-        ui.updateEditorContent({ id: EDITOR, content: content });
+        disableEditor();
+    } else if (subject === "player-turn" && body === peerID) {
+        clearEditor();
 
-        appElement.classList.add("disabled");
-        displayMessage("");
+        // change the editor to writable when it's the player's turn
+        enableEditor();
+    } else if (subject === "player-turn" && body !== peerID) {
+        disableEditor();
     }
 }, (promiscuous = true));
 

@@ -29,11 +29,13 @@ body,
   gap: 5px;
   position: absolute;
   bottom: 0;
-  background-color: #3c3c3c;
+  overflow: scroll;
+  box-shadow: 0 0 15px #f4f4f4;
 }
 
 #server-messages {
   width: 70%;
+  font-weight: 600;
 }
 
 .loader {
@@ -70,12 +72,13 @@ body,
   width: 100%;
   background-color: #ececec;
   color: #0f0f0f;
-  transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in-out;
 }
 
 #run:hover {
   background-color: #0f0f0f;
   color: #ececec;
+  border: 1px solid #f4f4f4;
 }
 
 @media (prefers-color-scheme: light) {
