@@ -14,145 +14,148 @@ function run() {
 }
 
 function initEditor({ id, content, language, theme }) {
-const editor_ = monaco.editor.create(document.getElementById(id), {
-    value: content,
-    language: language,
-    theme: theme,
-    automaticLayout: true,
-});
+    const editor_ = monaco.editor.create(document.getElementById(id), {
+        value: content,
+        language: language,
+        theme: theme,
+        automaticLayout: true,
+    });
 
-function save() {
-    const value = editor_.getValue();
+    function save() {
+        const value = editor_.getValue();
 
-    if (sendMsgNext) {
-    Edrys.sendMessage("update", JSON.stringify({ id, value, client }));
-    } else {
-    sendMsgNext = !sendMsgNext;
+        if (sendMsgNext) {
+            Edrys.sendMessage("update", JSON.stringify({ id, value, client }));
+        } else {
+            sendMsgNext = !sendMsgNext;
+        }
+
+        Edrys.setItem(`editorText_${id}`, value);
     }
 
-    Edrys.setItem(`editorText_${id}`, value);
-}
+    editor_.addAction({
+        id: "upload-code",
+        label: "Save & upload code...",
+        keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S],
+        precondition: null,
+        keybindingContext: null,
+        contextMenuGroupId: "navigation",
+        contextMenuOrder: 0,
+        run: function (ed) {
+            save();
+            //run()
+            return null;
+        },
+    });
 
-editor_.addAction({
-    id: "upload-code",
-    label: "Save & upload code...",
-    keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S],
-    precondition: null,
-    keybindingContext: null,
-    contextMenuGroupId: "navigation",
-    contextMenuOrder: 0,
-    run: function (ed) {
-    save();
-    //run()
-    return null;
-    },
-});
+    editor_.addAction({
+        id: "toggle-theme",
+        label: "Toggle dark theme",
+        precondition: null,
+        keybindingContext: null,
+        contextMenuGroupId: "navigation",
+        contextMenuOrder: 1,
+        run: function (ed) {
+        if (Edrys.module) {
+            let _theme =
+            Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
+            ed.updateOptions({
+                theme: _theme,
+            });
+            Edrys.setItem("theme", _theme);
+        }
+        return null;
+        },
+    });
 
-editor_.addAction({
-    id: "toggle-theme",
-    label: "Toggle dark theme",
-    precondition: null,
-    keybindingContext: null,
-    contextMenuGroupId: "navigation",
-    contextMenuOrder: 1,
-    run: function (ed) {
-    if (Edrys.module) {
-        let _theme =
-        Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
-        ed.updateOptions({
-        theme: _theme,
-        });
-        Edrys.setItem("theme", _theme);
-    }
-    return null;
-    },
-});
+    editor_.onDidChangeModelContent(save);
+    editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run);
 
-editor_.onDidChangeModelContent(save);
-editor_.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, run);
-
-return editor_;
+    return editor_;
 }
 
 const { createApp } = Vue;
 
 const app = createApp({
-data() {
-    return {
-    multiFileMode: null,
-    filename: [],
-    };
-},
-
-methods: {
-    runCode() {
-        run();
+    data() {
+        return {
+            multiFileMode: null,
+            filename: [],
+        };
     },
 
-    // reset the editor content to the starter code
-    resetCode() {
-        clearEditor();
-    },
+    methods: {
+        runCode() {
+            run();
+        },
 
-    // toggle editor theme
-    toggleTheme() {
-        const theme = Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
-        Edrys.setItem("theme", theme);
+        // reset the editor content to the starter code
+        resetCode() {
+            clearEditor();
+        },
 
-        for (const id in editor) {
-            editor[id].updateOptions({
+        // toggle editor theme
+        toggleTheme() {
+            const theme = Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
+            Edrys.setItem("theme", theme);
+            
+            changeThemeToggleContainerBgC(theme);
+
+            for (const id in editor) {
+                editor[id].updateOptions({
+                    theme,
+                });
+            }
+        },
+
+        identifier(id) {
+            return identifier(id);
+        },
+
+        init({ id, content, language, theme }) {
+            if (typeof content === "string") {
+                // in this case only a single file will be generated
+                this.multiFileMode = false;
+                editor = {};
+                editor[this.identifier(id)] = initEditor({
+                id,
+                content,
+                language,
                 theme,
-            });
-        }
+                });
+            } else {
+                this.multiFileMode = true;
+
+                for (const name in content) {
+                this.filename.push(name);
+                }
+            }
+        },
+
+        initFiles({ id, content, language, theme }) {
+            editor = {};
+
+            for (const filename in content) {
+                let id = this.identifier(filename);
+                editor[id] = initEditor({
+                id,
+                content: content[filename],
+                language,
+                theme,
+                });
+            }
+        },
+
+        updateEditorContent({ id, content }) {
+            editor[this.identifier(id)].setValue(content);
+        },
     },
-
-    identifier(id) {
-        return identifier(id);
-    },
-
-    init({ id, content, language, theme }) {
-    if (typeof content === "string") {
-        // in this case only a single file will be generated
-        this.multiFileMode = false;
-        editor = {};
-        editor[this.identifier(id)] = initEditor({
-        id,
-        content,
-        language,
-        theme,
-        });
-    } else {
-        this.multiFileMode = true;
-
-        for (const name in content) {
-        this.filename.push(name);
-        }
-    }
-    },
-
-    initFiles({ id, content, language, theme }) {
-    editor = {};
-
-    for (const filename in content) {
-        let id = this.identifier(filename);
-        editor[id] = initEditor({
-        id,
-        content: content[filename],
-        language,
-        theme,
-        });
-    }
-    },
-
-    updateEditorContent({ id, content }) {
-        editor[this.identifier(id)].setValue(content);
-    },
-},
 });
 
 const ui = app.mount("#app");
 
 const appElement = document.getElementById("app");
+
 
 Edrys.onReady(() => {
     const language = Edrys?.module?.config?.language || "cpp";
@@ -162,6 +165,8 @@ Edrys.onReady(() => {
         window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "vs-dark"
         : "vs-light");
+
+    changeThemeToggleContainerBgC(theme);
 
     // if the challenge is time-restricted, the editor should be read-only, until the timer starts
     if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer" || Edrys.module.challengeId === "missing-led") {
@@ -342,3 +347,10 @@ Edrys.onMessage(({ from, subject, body }) => {
         break;
     }
 });
+
+
+// Function to change the theme toggle container background color
+const changeThemeToggleContainerBgC = (theme) => {
+    const themeToggleContainer = document.querySelector(".theme_toggle_container");
+    theme === "vs-light" ? themeToggleContainer.style.backgroundColor = "#fffffe" : themeToggleContainer.style.backgroundColor = "#1e1e1e";
+};

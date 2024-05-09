@@ -98,6 +98,7 @@ body,
   justify-content: center;
   background-color: #ececec;
   color: #0f0f0f;
+  border: 1px solid #0f0f0f;
   box-shadow: 0 0 5px #f4f4f4;
   transition: all 0.3s ease-in-out;
 }
