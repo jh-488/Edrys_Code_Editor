@@ -89,8 +89,21 @@ methods: {
         run();
     },
 
+    // reset the editor content to the starter code
     resetCode() {
         clearEditor();
+    },
+
+    // toggle editor theme
+    toggleTheme() {
+        const theme = Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
+        Edrys.setItem("theme", theme);
+
+        for (const id in editor) {
+            editor[id].updateOptions({
+                theme,
+            });
+        }
     },
 
     identifier(id) {
@@ -132,7 +145,7 @@ methods: {
     },
 
     updateEditorContent({ id, content }) {
-    editor[this.identifier(id)].setValue(content);
+        editor[this.identifier(id)].setValue(content);
     },
 },
 });

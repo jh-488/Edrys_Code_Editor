@@ -26,11 +26,11 @@ body,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 5px;
   position: absolute;
   bottom: 0;
   overflow: scroll;
   box-shadow: 0 0 15px #f4f4f4;
+  background-color: #202b38;
 }
 
 #server-messages {
@@ -76,10 +76,30 @@ body,
   font-weight: 600;
 }
 
-.btn1:hover {
+.btn1:hover,  #toggle_theme:hover{
   background-color: #0f0f0f;
   color: #ececec;
   border: 1px solid #f4f4f4;
+}
+
+.theme_toggle_container {
+  display: flex;
+  justify-content: right;
+  background-color: #202b38;
+}
+
+#toggle_theme {
+  width: 20px;
+  height: 30px;
+  margin: 5px;
+  padding: 5px 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ececec;
+  color: #0f0f0f;
+  box-shadow: 0 0 5px #f4f4f4;
+  transition: all 0.3s ease-in-out;
 }
 
 @media (prefers-color-scheme: light) {

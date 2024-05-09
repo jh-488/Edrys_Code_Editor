@@ -47,12 +47,16 @@
 
     <div id="app">
         <div style="height: 640px;" v-if="!multiFileMode">
-            <div id="editor" style="height: 100%; max-height: inherit; max-width: inherit;"></div>
+            <div id="editor" style="height: 100%; max-height: inherit; max-width: inherit;">
+                <div class="theme_toggle_container">
+                    <button id="toggle_theme" @click="toggleTheme"><span class="oi" data-glyph="brush" title="Toggle Theme"></span></button>
+                </div>
+            </div>
             <div class="editor_output">
                 <!-- To display server messages -->
                 <div id="server-messages"></div>
                 <div class="buttons_container">
-                    <button class="btn1" id="run"  @click="runCode">
+                    <button class="btn1" id="run"  @click="runCode" title="Run code">
                         <span class="oi" data-glyph="media-play"></span>
                         Run
                     </button>
@@ -69,7 +73,7 @@
                 <!-- To display server messages -->
                 <div id="server-messages"></div>
                 <div class="buttons_container">
-                    <button class="btn1" id="run"  @click="runCode">
+                    <button class="btn1" id="run"  @click="runCode" title="Run code">
                         <span class="oi" data-glyph="media-play"></span>
                         Run
                     </button>
