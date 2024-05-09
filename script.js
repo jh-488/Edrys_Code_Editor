@@ -6,11 +6,11 @@ const client = new Date().getTime();
 var editor = {};
 
 function identifier(id) {
-return id.replace(".", "_").replace("/", "__");
+    return id.replace(".", "_").replace("/", "__");
 }
 
 function run() {
-Edrys.sendMessage("run", "");
+    Edrys.sendMessage("run", "");
 }
 
 function initEditor({ id, content, language, theme }) {
@@ -86,11 +86,15 @@ data() {
 
 methods: {
     runCode() {
-    run();
+        run();
+    },
+
+    resetCode() {
+        clearEditor();
     },
 
     identifier(id) {
-    return identifier(id);
+        return identifier(id);
     },
 
     init({ id, content, language, theme }) {
@@ -138,43 +142,43 @@ const ui = app.mount("#app");
 const appElement = document.getElementById("app");
 
 Edrys.onReady(() => {
-const language = Edrys?.module?.config?.language || "cpp";
-const theme =
-    Edrys?.module?.config?.theme ||
-    (window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "vs-dark"
-    : "vs-light");
+    const language = Edrys?.module?.config?.language || "cpp";
+    const theme =
+        Edrys?.module?.config?.theme ||
+        (window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "vs-dark"
+        : "vs-light");
 
-// if the challenge is time-restricted, the editor should be read-only, until the timer starts
-if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer") {
-    disableEditor();
-}
-
-if (Edrys.module.config.file) {
-    const content = Edrys.module.config.file;
-
-    for (key in content) {
-    content[key] =
-        Edrys.getItem(`editorText_${identifier(key)}`) ||
-        content[key] ||
-        CONTENT;
+    // if the challenge is time-restricted, the editor should be read-only, until the timer starts
+    if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer" || Edrys.module.challengeId === "missing-led") {
+        disableEditor();
     }
 
-    ui.init({ id: "editor", content, language, theme });
+    if (Edrys.module.config.file) {
+        const content = Edrys.module.config.file;
 
-    setTimeout(function () {
-        ui.initFiles({ id: "editor", content, language, theme });
-    }, 1000);
+        for (key in content) {
+        content[key] =
+            Edrys.getItem(`editorText_${identifier(key)}`) ||
+            content[key] ||
+            CONTENT;
+        }
 
-} else {
-    const content =
-    Edrys.getItem(`editorText_${EDITOR}`) ||
-    Edrys.module.config.editorText ||
-    CONTENT;
+        ui.init({ id: "editor", content, language, theme });
 
-    ui.init({ id: EDITOR, content, language, theme });
-}
+        setTimeout(function () {
+            ui.initFiles({ id: "editor", content, language, theme });
+        }, 1000);
+
+    } else {
+        const content =
+        Edrys.getItem(`editorText_${EDITOR}`) ||
+        Edrys.module.config.editorText ||
+        CONTENT;
+
+        ui.init({ id: EDITOR, content, language, theme });
+    }
 });
 
 function getShortPeerID(id) {
@@ -193,7 +197,9 @@ window.addEventListener("message", (message) => {
       return;
     }
   
-    peerID = getShortPeerID(message.data.username);
+    if (message.data.username) {
+        peerID = getShortPeerID(message.data.username);
+    }
 });
 
 // Functions to handle editor state
@@ -230,7 +236,7 @@ Edrys.onMessage(({ from, subject, body, module }) => {
         enableEditor();
     } else if (subject === "player-turn" && body !== peerID) {
         disableEditor();
-    }
+    } 
 }, (promiscuous = true));
 
 const displayMessage = (message) => {
@@ -248,18 +254,18 @@ socket.onmessage = (event) => {
         Edrys.sendMessage("server-response", "Error: " + data.error);
     } else if (data.testMessage) {
         if (data.testPassed) {
-        Edrys.sendMessage(
-            "server-response",
-            `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-check' style='color: #63E6BE;'></i></p>`
-        );
+            Edrys.sendMessage(
+                "server-response",
+                `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-check' style='color: #63E6BE;'></i></p>`
+            );
 
-        // send winning message to the timer module
-        Edrys.sendMessage("challenge-solved", "Challenge solved");
+            // send winning message to the timer module
+            Edrys.sendMessage("challenge-solved", "Challenge solved");
         } else {
-        Edrys.sendMessage(
-            "server-response",
-            `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-xmark' style='color: #ff0000;'></i></p>`
-        );
+            Edrys.sendMessage(
+                "server-response",
+                `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-xmark' style='color: #ff0000;'></i></p>`
+            );
         }
     } else {
         Edrys.sendMessage(
@@ -270,56 +276,56 @@ socket.onmessage = (event) => {
 };
 
 Edrys.onMessage(({ from, subject, body }) => {
-switch (subject) {
-    case "update":
-        const b = JSON.parse(body);
+    switch (subject) {
+        case "update":
+            const b = JSON.parse(body);
 
-        if (b.client == client) return;
+            if (b.client == client) return;
 
-        // console.log(b.client, client)
+            // console.log(b.client, client)
 
-        sendMsgNext = false;
-        editor[b.id].setValue(b.value);
-        break;
-    case "run":
-        body = "";
+            sendMsgNext = false;
+            editor[b.id].setValue(b.value);
+            break;
+        case "run":
+            body = "";
 
-        if (ui.multiFileMode) {
-            let file = {};
-            for (const name of ui.filename) {
-                file[name] = editor[identifier(name)].getValue();
-            }
+            if (ui.multiFileMode) {
+                let file = {};
+                for (const name of ui.filename) {
+                    file[name] = editor[identifier(name)].getValue();
+                }
 
-            body = JSON.stringify({ file });
-        } else {
-            body = editor[EDITOR].getValue();
-        }
-
-        if (Edrys.module.config.runCommand) {
-            Edrys.sendMessage(Edrys.module.config.runCommand, body);
-        }
-
-        // show loader while waiting for response
-        Edrys.sendMessage("server-response", "<span class='loader'></span>");
-
-        if (Edrys.role === "station") {
-            // send the code through socket if connected
-            if (!socket || socket.readyState !== WebSocket.OPEN) {
-                Edrys.sendMessage("server-response", "Error: Server not connected!!");
+                body = JSON.stringify({ file });
             } else {
-            socket.send(
-                JSON.stringify({
-                code: body,
-                challengeId: Edrys.module.challengeId,
-                })
-            );
+                body = editor[EDITOR].getValue();
             }
-        }
 
+            if (Edrys.module.config.runCommand) {
+                Edrys.sendMessage(Edrys.module.config.runCommand, body);
+            }
+
+            // show loader while waiting for response
+            Edrys.sendMessage("server-response", "<span class='loader'></span>");
+
+            if (Edrys.role === "station") {
+                // send the code through socket if connected
+                if (!socket || socket.readyState !== WebSocket.OPEN) {
+                    Edrys.sendMessage("server-response", "Error: Server not connected!!");
+                } else {
+                    socket.send(
+                        JSON.stringify({
+                        code: body,
+                        challengeId: Edrys.module.challengeId,
+                        })
+                    );
+                }
+            }
+
+            break;
+        // Event listener to handle WebSocket responses
+        case "server-response":
+            displayMessage(body);
         break;
-    // Event listener to handle WebSocket responses
-    case "server-response":
-        displayMessage(body);
-    break;
-}
+    }
 });
