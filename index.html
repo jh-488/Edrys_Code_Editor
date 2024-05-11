@@ -44,12 +44,13 @@
 </head>
 
 <body>
-
     <div id="app">
         <div style="height: 640px;" v-if="!multiFileMode">
             <div id="editor" style="height: 100%; max-height: inherit; max-width: inherit;">
-                <div class="theme_toggle_container">
-                    <button id="toggle_theme" @click="toggleTheme"><span class="oi" data-glyph="brush" title="Toggle Theme"></span></button>
+                <div class="top_bar_container">
+                    <button class="btn2" @click="zoomOut"><span class="oi" data-glyph="zoom-out" title="Zoom Out"></span></button>
+                    <button class="btn2" @click="zoomIn"><span class="oi" data-glyph="zoom-in" title="Zoom In"></span></button>
+                    <button class="btn2" @click="toggleTheme"><span class="oi" data-glyph="brush" title="Change Theme"></span></button>
                 </div>
             </div>
             <div class="editor_output">
@@ -98,6 +99,7 @@
                 </div>
             </div>
         </div>
+        
     </div>
 
     <script src="./script.js"></script>

@@ -4,6 +4,7 @@ const EDITOR = "editor";
 var sendMsgNext = true;
 const client = new Date().getTime();
 var editor = {};
+let myFontSize = 13;
 
 function identifier(id) {
     return id.replace(".", "_").replace("/", "__");
@@ -19,6 +20,7 @@ function initEditor({ id, content, language, theme }) {
         language: language,
         theme: theme,
         automaticLayout: true,
+        fontSize: myFontSize,
     });
 
     function save() {
@@ -89,25 +91,6 @@ const app = createApp({
             run();
         },
 
-        // reset the editor content to the starter code
-        resetCode() {
-            clearEditor();
-        },
-
-        // toggle editor theme
-        toggleTheme() {
-            const theme = Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
-            Edrys.setItem("theme", theme);
-            
-            changeThemeToggleContainerBgC(theme);
-
-            for (const id in editor) {
-                editor[id].updateOptions({
-                    theme,
-                });
-            }
-        },
-
         identifier(id) {
             return identifier(id);
         },
@@ -118,16 +101,16 @@ const app = createApp({
                 this.multiFileMode = false;
                 editor = {};
                 editor[this.identifier(id)] = initEditor({
-                id,
-                content,
-                language,
-                theme,
+                    id,
+                    content,
+                    language,
+                    theme,
                 });
             } else {
                 this.multiFileMode = true;
 
                 for (const name in content) {
-                this.filename.push(name);
+                    this.filename.push(name);
                 }
             }
         },
@@ -138,10 +121,47 @@ const app = createApp({
             for (const filename in content) {
                 let id = this.identifier(filename);
                 editor[id] = initEditor({
-                id,
-                content: content[filename],
-                language,
-                theme,
+                    id,
+                    content: content[filename],
+                    language,
+                    theme,
+                });
+            }
+        },
+
+        // reset the editor content to the starter code
+        resetCode() {
+            clearEditor();
+        },
+
+        // toggle editor theme
+        toggleTheme() {
+            const theme = Edrys.getItem("theme") == "vs-light" ? "vs-dark" : "vs-light";
+            Edrys.setItem("theme", theme);
+            
+            changeTopBarBgColor(theme);
+
+            for (const id in editor) {
+                editor[id].updateOptions({
+                    theme,
+                });
+            }
+        },
+
+        zoomIn() {
+            myFontSize += 3;
+            for (const id in editor) {
+                editor[id].updateOptions({
+                    fontSize: myFontSize,
+                });
+            }
+        },
+
+        zoomOut() {
+            myFontSize -= 3;
+            for (const id in editor) {
+                editor[id].updateOptions({
+                    fontSize: myFontSize,
                 });
             }
         },
@@ -166,7 +186,7 @@ Edrys.onReady(() => {
         ? "vs-dark"
         : "vs-light");
 
-    changeThemeToggleContainerBgC(theme);
+    changeTopBarBgColor(theme);
 
     // if the challenge is time-restricted, the editor should be read-only, until the timer starts
     if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer" || Edrys.module.challengeId === "missing-led") {
@@ -191,9 +211,9 @@ Edrys.onReady(() => {
 
     } else {
         const content =
-        Edrys.getItem(`editorText_${EDITOR}`) ||
-        Edrys.module.config.editorText ||
-        CONTENT;
+            Edrys.getItem(`editorText_${EDITOR}`) ||
+            Edrys.module.config.editorText ||
+            CONTENT;
 
         ui.init({ id: EDITOR, content, language, theme });
     }
@@ -287,8 +307,8 @@ socket.onmessage = (event) => {
         }
     } else {
         Edrys.sendMessage(
-        "server-response",
-        data.message + "\n" + (data.stdout ? data.stdout : data.stderr)
+            "server-response",
+            data.message + "\n" + (data.stdout ? data.stdout : data.stderr)
         );
     }
 };
@@ -350,7 +370,7 @@ Edrys.onMessage(({ from, subject, body }) => {
 
 
 // Function to change the theme toggle container background color
-const changeThemeToggleContainerBgC = (theme) => {
-    const themeToggleContainer = document.querySelector(".theme_toggle_container");
-    theme === "vs-light" ? themeToggleContainer.style.backgroundColor = "#fffffe" : themeToggleContainer.style.backgroundColor = "#1e1e1e";
+const changeTopBarBgColor = (theme) => {
+    const topBarContainer = document.querySelector(".top_bar_container");
+    theme === "vs-light" ? topBarContainer.style.backgroundColor = "#fffffe" : topBarContainer.style.backgroundColor = "#1e1e1e";
 };
