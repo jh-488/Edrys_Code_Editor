@@ -353,8 +353,8 @@ Edrys.onMessage(({ from, subject, body }) => {
                 } else {
                     socket.send(
                         JSON.stringify({
-                        code: body,
-                        challengeId: Edrys.module.challengeId,
+                            code: body,
+                            challengeId: Edrys.module.challengeId,
                         })
                     );
                 }
