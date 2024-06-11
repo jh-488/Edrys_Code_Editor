@@ -219,26 +219,6 @@ Edrys.onReady(() => {
     }
 });
 
-function getShortPeerID(id) {
-    const ids = id.split('_');
-  
-    if (ids.length == 2) {
-      return ids[0].slice(6)
-    }
-  
-    return id
-}
-let peerID;
-// get user short id from edrys
-window.addEventListener("message", (message) => {
-    if (message.origin !== "http://localhost:6999") {
-      return;
-    }
-  
-    if (message.data.username) {
-        peerID = getShortPeerID(message.data.username);
-    }
-});
 
 // Functions to handle editor state
 const clearEditor = () => {
@@ -267,12 +247,12 @@ Edrys.onMessage(({ from, subject, body, module }) => {
         clearEditor();
 
         disableEditor();
-    } else if (subject === "player-turn" && body === peerID) {
+    } else if (subject === "player-turn" && body === Edrys.liveUser.displayName) {
         clearEditor();
 
         // change the editor to writable when it's the player's turn
         enableEditor();
-    } else if (subject === "player-turn" && body !== peerID) {
+    } else if (subject === "player-turn" && body !== Edrys.liveUser.displayName) {
         disableEditor();
     } 
 }, (promiscuous = true));
