@@ -270,6 +270,7 @@ socket.onmessage = (event) => {
 
     if (data.error) {
         Edrys.sendMessage("server-response", "Error: " + data.error);
+        Edrys.sendMessage("continue-timer", "");
     } else if (data.testMessage) {
         if (data.testPassed) {
             Edrys.sendMessage(
@@ -284,12 +285,14 @@ socket.onmessage = (event) => {
                 "server-response",
                 `<p style='font-size: 2rem'>${data.testMessage} <i class='fa fa-circle-xmark' style='color: #ff0000;'></i></p>`
             );
+            Edrys.sendMessage("continue-timer", "");
         }
     } else {
         Edrys.sendMessage(
             "server-response",
             data.message + "\n" + (data.stdout ? data.stdout : data.stderr)
         );
+        Edrys.sendMessage("continue-timer", "");
     }
 };
 
@@ -323,8 +326,9 @@ Edrys.onMessage(({ from, subject, body }) => {
                 Edrys.sendMessage(Edrys.module.config.runCommand, body);
             }
 
-            // show loader while waiting for response
+            // show loader (and stop timer) while waiting for response
             Edrys.sendMessage("server-response", "<span class='loader'></span>");
+            Edrys.sendMessage("pause-timer", "");
 
             if (Edrys.role === "station") {
                 // send the code through socket if connected
