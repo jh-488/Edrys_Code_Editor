@@ -186,7 +186,7 @@ Edrys.onReady(() => {
         ? "vs-dark"
         : "vs-light");
 
-    changeTopBarBgColor(theme);
+    //changeTopBarBgColor(theme);
 
     // if the challenge is time-restricted, the editor should be read-only, until the timer starts
     if (Edrys.module.challengeType === "time-restricted" || Edrys.module.challengeType === "multiplayer" || Edrys.module.challengeId === "missing-led") {
